@@ -44,6 +44,3 @@ try:
     conn.close()
 except mysql.connector.Error as e:
     print(f"Fehler bei der Verbindung zur Datenbank: {e}")
-
-
-    hfxzfxfzxzfx
