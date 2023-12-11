@@ -12,7 +12,8 @@ from B_ManuelleÄnderung import ManuelleDatenAenderung
 class Hauptprogramm:
     def __init__(self):
         self.hauptmenue = Hauptmenü(self)
-        self.manuelle_dateneingabe = ManuelleDateneingabe(self)
+        bauteil = "Gurtumsetzer"
+        self.manuelle_dateneingabe = ManuelleDateneingabe(bauteil, self)
         self.datenbankzugriff = Datenbankzugriff(self)
         self.berechnungen = Berechnungen(self)
         self.graphenerstellung = Graphenerstellung(self)
