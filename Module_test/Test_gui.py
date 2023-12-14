@@ -1,8 +1,9 @@
 # gui_module.py
 import tkinter as tk
+from Test_haupt import Hauptprogramm
 
 class GUI:
-    def __init__(self):
+    def open_gui(self):
         self.root = tk.Tk()
         self.root.title('GUI with Button')
 
