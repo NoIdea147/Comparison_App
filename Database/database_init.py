@@ -4,7 +4,7 @@ import mysql.connector
 config = {
     'user': 'dev_user',
     'password': '^JB~_seip6Y%iuLV]V_.xmQn{nKA$Z',
-    'host': '127.0.0.1',
+    'host': 'localhost',
     'port': '3306',  # Standard-MySQL-Port ist 3306
     'database': 'sys',
     'raise_on_warnings': True
