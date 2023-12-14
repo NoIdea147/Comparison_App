@@ -22,6 +22,12 @@ class FullScreenApp:
         self.canvas1 = None
         self.canvas2 = None
 
+        # Variablen der Komponenten abrufen
+        self.component_data = {
+             "Gurtumsetzer": {"strompreis_entry": 0.31, "wirkungsgrad_elektrisch_entry":0.95, "wirkungsgrad_pneumatisch_entry":0.27},
+             "Staurollenförderer": {"strompreis_entry": 0.31, "wirkungsgrad_elektrisch_entry":0.95, "wirkungsgrad_pneumatisch_entry":0.27}
+        }
+
         # Create main menu
         self.create_menu()
 
@@ -35,13 +41,12 @@ class FullScreenApp:
         self.component_dropdown = ttk.Combobox(self.root, values=list(self.component_data.keys()))
         self.component_dropdown.pack(pady=10)
 
-
         ttk.Button(self.root, text="Begin Selection", command=self.modify_data).pack(pady=10)
 
         
         ttk.Button(menu_frame, text="Options", command=self.open_options_window).pack(side="left", padx=10)
 
-        self.open_options_window()
+        
     def open_options_window(self):
         options_window = tk.Toplevel(self.root)
         options_window.geometry("250x300")
@@ -58,12 +63,6 @@ class FullScreenApp:
         ttk.Label(options_window, text="Strompreis:").pack(pady=10)
         strompreis_entry = ttk.Entry(options_window)
         strompreis_entry.pack(pady=5)
-
-    # Variablen der Komponenten abrufen
-        self.component_data = {
-            "Gurtumsetzer": {strompreis_entry, wirkungsgrad_elektrisch_entry, wirkungsgrad_pneumatisch_entry},
-            "Staurollenförderer": {strompreis_entry, wirkungsgrad_elektrisch_entry, wirkungsgrad_pneumatisch_entry}
-        }
 
         # Manuellen Daten der Komponenten
         self.selected_component = None
