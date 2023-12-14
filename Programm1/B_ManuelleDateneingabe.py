@@ -7,6 +7,11 @@ class ManuelleDateneingabe:
         self.root = tk.Toplevel()
         self.root.title("Manuelle Dateneingabe")
 
+        # Assuming bauteil is a placeholder value
+        bauteil = "Gurtumsetzer"
+        self.manuelle_dateneingabe = ManuelleDateneingabe(bauteil, self)
+
+
         # Schichtmodell Dropdown-Menü
         schichtmodell_var = tk.StringVar()
         schichtmodell_dropdown = ttk.Combobox(self.root, textvariable=schichtmodell_var, values=["Zweischichtmodell", "Dreischichtmodell", "Dauerbetrieb"])
