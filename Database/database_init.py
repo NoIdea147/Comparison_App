@@ -1,46 +1,49 @@
 import mysql.connector
 
-# Verbindungsdetails für die MySQL-Datenbank
-config = {
-    'user': 'dev_user',
-    'password': '^JB~_seip6Y%iuLV]V_.xmQn{nKA$Z',
-    'host': 'localhost',
-    'port': '3306',  # Standard-MySQL-Port ist 3306
-    'database': 'sys',
-    'raise_on_warnings': True
-}
+# Erstellen Sie eine Verbindung zur Datenbank
+# Ersetzen Sie 'hostname', 'user', 'password' und 'database' mit Ihren eigenen Daten
+conn = mysql.connector.connect(
+    host='localhost',
+    port = '3306',
+    user='dev_user',
+    password='^JB~_seip6Y%iuLV]V_.xmQn{nKA$Z',
+    database='sys'
+)
+
+# Erstellen Sie ein Cursor-Objekt
+cursor = conn.cursor()
+
+# SQL-Abfrage, um alle Zeilen aus der Tabelle Bauteile zu erhalten
+query = "SELECT * FROM Bauteile"
 
 try:
-    # Verbindung zur Datenbank herstellen
-    conn = mysql.connector.connect(**config)
-    print("Verbindung zur Datenbank erfolgreich hergestellt!")
-    
-    # Einen Cursor erstellen
-    cursor = conn.cursor()
-    
-    # SQL-Abfrage, um alle Werte aller Spalten für alle Zeilen zu erhalten
-    query = "SELECT * FROM Bauteile"
+    # Führen Sie die Abfrage aus
     cursor.execute(query)
-    
-    # Alle Ergebnisse der Abfrage holen
-    results = cursor.fetchall()
-    
-    if results:
-        for row in results:
-            # Jeden Wert in einer Variablen speichern
-            bauteil = row[0]
-            luftverbrauch = row[1]
-            hub = row[2]
-            zykluszeit = row[3]
-            positionierungszeit = row[4]
-            durchschnittliche_wartungskosten = row[5]
-            
 
-    else:
-        print("Keine Einträge in der Tabelle Bauteile gefunden.")
-    
-    # Cursor und Verbindung schließen
-    cursor.close()
-    conn.close()
-except mysql.connector.Error as e:
-    print(f"Fehler bei der Verbindung zur Datenbank: {e}")
+    # Holen Sie alle Zeilen
+    rows = cursor.fetchall()
+
+    # Dictionary, um die Werte zu speichern
+    bauteile_dict = {}
+
+    # Schleife durch die Ergebnisse und speichern Sie die Werte im Dictionary
+    for i, row in enumerate(rows, start=1):
+        bauteile_dict[f'bauteil{i}_luftverbrauch'] = row[1]
+        bauteile_dict[f'bauteil{i}_hub'] = row[2]
+        bauteile_dict[f'bauteil{i}_zykluszeit'] = row[3]
+        bauteile_dict[f'bauteil{i}_positionierungszeit'] = row[4]
+        bauteile_dict[f'bauteil{i}_durchschnittliche_wartungskosten'] = row[5]
+
+    # Beispiel, um zu zeigen, wie auf die Werte zugegriffen wird
+    for key, value in bauteile_dict.items():
+        print(f'{key}: {value}')
+
+except mysql.connector.Error as err:
+    print(f"Fehler: {err}")
+
+finally:
+    # Schließen Sie die Verbindung
+    if conn.is_connected():
+        cursor.close()
+        conn.close()
+        print("MySQL Verbindung ist geschlossen")
