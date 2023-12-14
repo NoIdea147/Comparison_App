@@ -1,0 +1,32 @@
+import tkinter as tk
+from PIL import Image, ImageTk
+import requests
+from io import BytesIO
+
+def zeige_bild_von_url(url):
+    # Lade das Bild von der URL herunter
+    response = requests.get(url)
+    bild_data = response.content
+
+    # Öffne das Bild mit Pillow
+    bild = Image.open(BytesIO(bild_data))
+
+    # Konvertiere das Pillow-Bild zu einem Tkinter-Bild
+    tk_bild = ImageTk.PhotoImage(bild)
+
+    # Erstelle ein Tkinter-Fenster
+    fenster = tk.Tk()
+    fenster.title("Bildanzeige")
+
+    # Erstelle ein Tkinter-Label und füge das Bild hinzu
+    label = tk.Label(fenster, image=tk_bild)
+    label.pack()
+
+    # Starte die Tkinter-Schleife
+    fenster.mainloop()
+
+# Beispiel-URL für ein Bild (ersetze es durch deine eigene URL)
+bild_url = "https://example.com/dein_bild.png"
+
+# Rufe die Funktion auf
+zeige_bild_von_url(bild_url)

@@ -8,6 +8,8 @@ from reportlab.lib.pagesizes import letter
 from matplotlib.backends.backend_pdf import PdfPages
 from tkinter import filedialog
 from PIL import Image, ImageTk
+import numpy as np
+import matplotlib.pyplot as plt
 
 class FullScreenApp:
     def __init__(self, root):
@@ -42,39 +44,23 @@ class FullScreenApp:
         self.component_dropdown.pack(pady=10)
 
         ttk.Button(self.root, text="Begin Selection", command=self.modify_data).pack(pady=10)
-
         
         ttk.Button(menu_frame, text="Options", command=self.open_options_window).pack(side="left", padx=10)
-
-        
-    def open_options_window(self):
-        options_window = tk.Toplevel(self.root)
-        options_window.geometry("250x300")
-        options_window.title("Options")
-
-        ttk.Label(options_window, text="Wirkungsgrad elektrisch:").pack(pady=10)
-        wirkungsgrad_elektrisch_entry = ttk.Entry(options_window)
-        wirkungsgrad_elektrisch_entry.pack(pady=5)
-
-        ttk.Label(options_window, text="Wirkungsgrad pneumatisch:").pack(pady=10)
-        wirkungsgrad_pneumatisch_entry = ttk.Entry(options_window)
-        wirkungsgrad_pneumatisch_entry.pack(pady=5)
-
-        ttk.Label(options_window, text="Strompreis:").pack(pady=10)
-        strompreis_entry = ttk.Entry(options_window)
-        strompreis_entry.pack(pady=5)
 
         # Manuellen Daten der Komponenten
         self.selected_component = None
         self.manual_data = {
-            "Schichtmodell": tk.StringVar(),
-            "AnlagenGroesse": tk.StringVar(),
-            "Anschaffungskosten": tk.DoubleVar(),
-            "Betriebskosten": tk.DoubleVar(),
-            "Wartungskosten": tk.DoubleVar(),
-            "Nutzungsdauer": tk.IntVar(),
+            "Schichtmodell": tk.StringVar(value=""),
+            "AnlagenGroesse": tk.StringVar(value=""),
+            "Durchsatz": tk.DoubleVar(value=""),
+            "Masse": tk.StringVar(value=""),
+            "Nutzungsdauer": tk.IntVar(value=""),
+            "Wartungskosten": tk.DoubleVar(value=""), 
+            "Energiekosten": tk.DoubleVar(value=""),  
+            "Anschaffungskosten": tk.DoubleVar(value=""),          
             "BerechnungStarten": tk.StringVar(value="Ja")
         }
+
 
     def show_component_data(self):
         self.selected_component = self.component_dropdown.get()
@@ -95,10 +81,13 @@ class FullScreenApp:
         ttk.Button(data_window, text="Modify Data", command=self.modify_data).pack(pady=10)
 
     def modify_data(self):
+        
         # Create a new window to modify manual data
         modify_window = tk.Toplevel(self.root)
         modify_window.geometry("1920x1080")
         modify_window.title("Modify Data")
+
+        ttk.Label(modify_window, text="Manual data input", font=("Helvetica", 24)).pack(pady=20)
 
         # Create entry fields for manual data
         ttk.Label(modify_window, text="Schichtmodell:").pack(pady=10)
@@ -109,21 +98,31 @@ class FullScreenApp:
         anlagen_groesse_dropdown = ttk.Combobox(modify_window, values=["Klein (10 Stück)", "Mittel (50 Stück)", "Groß (100 Stück)"], textvariable=self.manual_data["AnlagenGroesse"])
         anlagen_groesse_dropdown.pack(pady=5)
 
-        ttk.Label(modify_window, text="Anschaffungskosten:").pack(pady=10)
-        anschaffungskosten_entry = ttk.Entry(modify_window, textvariable=self.manual_data["Anschaffungskosten"])
-        anschaffungskosten_entry.pack(pady=5)
+        ttk.Label(modify_window, text="Masse:").pack(pady=10)
+        masse_dropdown = ttk.Combobox(modify_window, values=["Wenig Gewicht (bis 10kg)", "Mittleres Gewicht (bis 30kg)", "Hohes Gewicht (bis 50kg)"], textvariable=self.manual_data["Masse"])
+        masse_dropdown.pack(pady=5)
 
-        ttk.Label(modify_window, text="Betriebskosten:").pack(pady=10)
-        betriebskosten_entry = ttk.Entry(modify_window, textvariable=self.manual_data["Betriebskosten"])
-        betriebskosten_entry.pack(pady=5)
-
-        ttk.Label(modify_window, text="Wartungskosten:").pack(pady=10)
-        wartungskosten_entry = ttk.Entry(modify_window, textvariable=self.manual_data["Wartungskosten"])
-        wartungskosten_entry.pack(pady=5)
+        ttk.Label(modify_window, text="Durchsatz:").pack(pady=10)
+        durchsatz_entry = ttk.Entry(modify_window, textvariable=self.manual_data["Durchsatz"])
+        durchsatz_entry.pack(pady=5)
 
         ttk.Label(modify_window, text="Nutzungsdauer (Jahre):").pack(pady=10)
         nutzungsdauer_entry = ttk.Entry(modify_window, textvariable=self.manual_data["Nutzungsdauer"])
         nutzungsdauer_entry.pack(pady=5)
+
+        ttk.Label(modify_window, text="Bewertungssystem:", font=("Helvetica", 18)).pack(pady=20)
+
+        ttk.Label(modify_window, text="Wartungskosten:").pack(pady=10)
+        wartungskosten_dropdown = ttk.Combobox(modify_window, values=["vernachlässigbar", "unwichtig", "neutral", "wichtig", "sehr wichtig"], textvariable=self.manual_data["Wartungskosten"])
+        wartungskosten_dropdown.pack(pady=5)
+
+        ttk.Label(modify_window, text="Energiekosten:").pack(pady=10)
+        energiekosten_dropdown = ttk.Combobox(modify_window, values=["vernachlässigbar", "unwichtig", "neutral", "wichtig", "sehr wichtig"], textvariable=self.manual_data["Wartungskosten"])
+        energiekosten_dropdown.pack(pady=5)
+
+        ttk.Label(modify_window, text="Anschaffungskosten:").pack(pady=10)
+        anschaffungskosten_dropdown = ttk.Combobox(modify_window, values=["vernachlässigbar", "unwichtig", "neutral", "wichtig", "sehr wichtig"], textvariable=self.manual_data["Wartungskosten"])
+        anschaffungskosten_dropdown.pack(pady=5)
 
         ttk.Button(modify_window, text="Confirm Data", command=self.change_data).pack(pady=10)
 
@@ -142,22 +141,75 @@ class FullScreenApp:
             # Perform calculations using manual data
             schichtmodell = self.manual_data["Schichtmodell"].get()
             anlagen_groesse = self.manual_data["AnlagenGroesse"].get()
-            anschaffungskosten = self.manual_data["Anschaffungskosten"].get()
-            betriebskosten = self.manual_data["Betriebskosten"].get()
-            wartungskosten = self.manual_data["Wartungskosten"].get()
+            anschaffungskosten_kompressor = 10000
+            leistung_eletrik=0.07
+            leistung_pneumatik=0.28
+            routine_wartung_kompressor_kosten = 500
+            routine_wartung_motor_kosten = 250
+            routine_wartung_zylinder_kosten = 250
             nutzungsdauer = self.manual_data["Nutzungsdauer"].get()
+
+            # Nur Vorübergehend:
+            strompreis_entry=0.41
+            wirkungsgrad_elektrisch_entry=0.95
+
+            # Auswärtung der Größe der Anlage
+            if anlagen_groesse=="Klein (10 Stück)":
+                anzahl_anlage = 10
+            elif anlagen_groesse=="Mittel (50 Stück)":
+                anzahl_anlage = 50
+            elif anlagen_groesse=="Groß (100 Stück)":
+                anzahl_anlage = 100
+
+            # Auswärtung des Schichtmodells
+            if schichtmodell=="Zweischichtbetrieb":
+                stunden_pro_woche=16*5
+            elif schichtmodell=="Dreischichtbetrieb":
+                stunden_pro_woche=24*5
+            elif schichtmodell=="Dauerbetrieb":
+                stunden_pro_woche=24*7
+
+            # Anschaffungskosten Berechnung
+            anschaffungskosten_elektrik = 3000 * anzahl_anlage
+            anschaffungskosten_pneumatik = 1000 * anzahl_anlage + anschaffungskosten_kompressor
+
+            # Energiekosten Berechnung
+            energiekosten_elektrik = leistung_eletrik * stunden_pro_woche * nutzungsdauer * anzahl_anlage * strompreis_entry * wirkungsgrad_elektrisch_entry
+            energiekosten_pneumatik = leistung_pneumatik * stunden_pro_woche * nutzungsdauer * anzahl_anlage * strompreis_entry 
+          
+            # Wartungskosten Berechnung
+            routine_wartung_motor = routine_wartung_motor_kosten * nutzungsdauer
+            # ausfalls_wartung_motor 
+            
+        def exponential_function1(nutzungsdauer):
+            return 0.02 * np.exp(-0.55 * nutzungsdauer) + 0.01 # Abnahme
+
+        def exponential_function2(x):
+                return 0.01 *np.exp(0.2*(x-20)) + 0.01
+        def combined_function(x):
+                if x <= 6.2:
+                    return exponential_function1(nutzungsdauer)
+                else:
+                    return exponential_function2(nutzungsdauer)
+                
+            routine_wartung_zylinder = routine_wartung_zylinder_kosten * nutzungsdauer
+            ausfalls_wartung_zylinder =
+            routine_wartung_kompressor = routine_wartung_kompressor_kosten * nutzungsdauer
+            ausfalls_wartung_kompressor =
+
+            wartungskosten_elektrik = routine_wartung_motor + ausfalls_wartung_motor 
+            wartungskosten_pneumatik = routine_wartung_zylinder + ausfalls_wartung_zylinder + routine_wartung_kompressor + ausfalls_wartung_kompressor
+
+            nutzungsdauer = self.manual_data["Nutzungsdauer"].get()
+
+            gesamtkosten_elektrik = anschaffungskosten_elektrik + energiekosten_elektrik + wartungskosten_elektrik
+            gesamtkosten_pneumatik = anschaffungskosten_pneumatik + energiekosten_pneumatik + wartungskosten_pneumatik
 
             # Optionally check if the calculation should start
             berechnung_starten = self.manual_data["BerechnungStarten"].get()
             if berechnung_starten == "Ja":
                 # Perform calculations based on manual data
                 # Replace with your actual calculations
-                installation_cost = anschaffungskosten * 0.1
-                operating_hours = 8
-
-                maintenance_cost = wartungskosten
-                operational_cost = betriebskosten * data["Wirkungsgrad"] * operating_hours
-                total_cost = installation_cost + (maintenance_cost + operational_cost) * nutzungsdauer
 
                 # Display results in a new window
                 self.results_window = tk.Toplevel(self.root)
@@ -187,10 +239,14 @@ class FullScreenApp:
                 self.canvas2.get_tk_widget().pack(side=tk.RIGHT, fill=tk.BOTH, expand=1)
 
                 # Display cost values
-                ttk.Label(self.results_window, text=f"Wartungskosten: {maintenance_cost}", font=("Helvetica", 16)).pack(pady=10)
-                ttk.Label(self.results_window, text=f"Betriebskosten: {operational_cost}", font=("Helvetica", 16)).pack(pady=10)
-                ttk.Label(self.results_window, text=f"Installationskosten: {installation_cost}", font=("Helvetica", 16)).pack(pady=10)
-                ttk.Label(self.results_window, text=f"Gesamtkosten: {total_cost}", font=("Helvetica", 16)).pack(pady=10)
+                ttk.Label(self.results_window, text=f"Wartungskosten Elektrik: {wartungskosten_elektrik}", font=("Helvetica", 16)).pack(pady=10)
+                ttk.Label(self.results_window, text=f"Wartungskosten Pneumatik: {wartungskosten_pneumatik}", font=("Helvetica", 16)).pack(pady=10)
+                ttk.Label(self.results_window, text=f"Energiekosten Elektrik: {energiekosten_elektrik}", font=("Helvetica", 16)).pack(pady=10)
+                ttk.Label(self.results_window, text=f"Energiekosten Pneumatik: {energiekosten_pneumatik}", font=("Helvetica", 16)).pack(pady=10)
+                ttk.Label(self.results_window, text=f"Installationskosten Elektrik: {anschaffungskosten_elektrik}", font=("Helvetica", 16)).pack(pady=10)
+                ttk.Label(self.results_window, text=f"Installationskosten Pneumatik: {anschaffungskosten_pneumatik}", font=("Helvetica", 16)).pack(pady=10)
+                ttk.Label(self.results_window, text=f"Gesamtkosten Elektrik: {gesamtkosten_elektrik}", font=("Helvetica", 16)).pack(pady=10)
+                ttk.Label(self.results_window, text=f"Gesamtkosten Pneumatik: {gesamtkosten_pneumatik}", font=("Helvetica", 16)).pack(pady=10)
 
                 # Create buttons for returning to main menu and changing component
                 ttk.Button(self.results_window, text="Hauptmenü", command=self.back_to_main_menu).pack(pady=10)
@@ -232,6 +288,23 @@ class FullScreenApp:
         figure_canvas.get_tk_widget().destroy()
         
         return figure_image
+    
+    def open_options_window(self):
+        options_window = tk.Toplevel(self.root)
+        options_window.geometry("250x300")
+        options_window.title("Options")
+
+        ttk.Label(options_window, text="Wirkungsgrad elektrisch:").pack(pady=10)
+        wirkungsgrad_elektrisch_entry = ttk.Entry(options_window)
+        wirkungsgrad_elektrisch_entry.pack(pady=5)
+
+        ttk.Label(options_window, text="Wirkungsgrad pneumatisch:").pack(pady=10)
+        wirkungsgrad_pneumatisch_entry = ttk.Entry(options_window)
+        wirkungsgrad_pneumatisch_entry.pack(pady=5)
+
+        ttk.Label(options_window, text="Strompreis:").pack(pady=10)
+        strompreis_entry = ttk.Entry(options_window)
+        strompreis_entry.pack(pady=5)
 
 
 if __name__ == "__main__":
