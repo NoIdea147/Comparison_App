@@ -13,8 +13,9 @@ def exponential_function1(x):
     return 0.02 * sp.exp(-0.55 * x) + 0.01  # Abnahme
 
 def exponential_function2(x):
-    return 0.01 * sp.exp(0.2 * (x - 20)) + 0.01
+    return 0.01 * sp.exp(0.2 * (x - 20)) + 0.01 # Zunahme
 
+# Zusammenführung Graphen
 def ausfalls_wartung_motor(x):
     condition = sp.LessThan(x, 6.2)
     return sp.Piecewise((exponential_function1(x), condition), (exponential_function2(x), True))
@@ -23,9 +24,9 @@ def ausfalls_wartung_motor(x):
 integral_result = sp.integrate(ausfalls_wartung_motor(x), (x, 0, nutzungsdauer)).evalf()
 
 # Multiplizieren Sie das Integralergebnis mit den Routine-Wartungskosten
-gesamtkosten = routine_wartung_motor_kosten * nutzungsdauer + integral_result * 2000*100
+wartungskosten_elektrik = routine_wartung_motor_kosten * nutzungsdauer + integral_result * 2000*100
 
-print(f"Gesamtkosten: {gesamtkosten}")
+print(f"Wartungskosten Elektrik: {wartungskosten_elektrik}")
 
 # Plot erstellen (optional)
 x_values = np.linspace(0, nutzungsdauer, 1000)

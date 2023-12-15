@@ -10,6 +10,7 @@ from tkinter import filedialog
 from PIL import Image, ImageTk
 import numpy as np
 import matplotlib.pyplot as plt
+import sympy as sp
 
 class FullScreenApp:
     def __init__(self, root):
@@ -29,6 +30,9 @@ class FullScreenApp:
              "Gurtumsetzer": {"strompreis_entry": 0.31, "wirkungsgrad_elektrisch_entry":0.95, "wirkungsgrad_pneumatisch_entry":0.27},
              "Staurollenförderer": {"strompreis_entry": 0.31, "wirkungsgrad_elektrisch_entry":0.95, "wirkungsgrad_pneumatisch_entry":0.27}
         }
+
+
+
 
         # Create main menu
         self.create_menu()
@@ -62,6 +66,9 @@ class FullScreenApp:
         }
 
 
+
+
+        # Create show component Fenster
     def show_component_data(self):
         self.selected_component = self.component_dropdown.get()
         data = self.component_data.get(self.selected_component, {})
@@ -80,6 +87,10 @@ class FullScreenApp:
         ttk.Button(data_window, text="Calculate", command=self.calculate_and_display).pack(pady=10)
         ttk.Button(data_window, text="Modify Data", command=self.modify_data).pack(pady=10)
 
+
+
+
+        # Modify Data input
     def modify_data(self):
         
         # Create a new window to modify manual data
@@ -91,7 +102,7 @@ class FullScreenApp:
 
         # Create entry fields for manual data
         ttk.Label(modify_window, text="Schichtmodell:").pack(pady=10)
-        schichtmodell_dropdown = ttk.Combobox(modify_window, values=["Zweischichtbetrieb", "Dreibschichtbetrieb", "Dauerbetrieb"], textvariable=self.manual_data["Schichtmodell"])
+        schichtmodell_dropdown = ttk.Combobox(modify_window, values=["Zweischichtbetrieb", "Dreischichtbetrieb", "Dauerbetrieb"], textvariable=self.manual_data["Schichtmodell"])
         schichtmodell_dropdown.pack(pady=5)
 
         ttk.Label(modify_window, text="Anlagen Größe:").pack(pady=10)
@@ -126,7 +137,6 @@ class FullScreenApp:
 
         ttk.Button(modify_window, text="Confirm Data", command=self.change_data).pack(pady=10)
 
-
     def change_data(self):
         # Implement functionality to change manual data
         # Placeholder message for demonstration purposes
@@ -134,6 +144,10 @@ class FullScreenApp:
 
         self.show_component_data()
 
+
+
+
+        # Berechnungen
     def calculate_and_display(self):
         if self.selected_component:
             data = self.component_data[self.selected_component]
@@ -177,34 +191,61 @@ class FullScreenApp:
             energiekosten_elektrik = leistung_eletrik * stunden_pro_woche * nutzungsdauer * anzahl_anlage * strompreis_entry * wirkungsgrad_elektrisch_entry
             energiekosten_pneumatik = leistung_pneumatik * stunden_pro_woche * nutzungsdauer * anzahl_anlage * strompreis_entry 
           
-            # Wartungskosten Berechnung
-            routine_wartung_motor = routine_wartung_motor_kosten * nutzungsdauer
-            # ausfalls_wartung_motor 
+            # Wartungskosten Elektrik:                  
+            # Definieren Sie Symbole
+            x = sp.symbols('x')
+
+            # Definieren Sie die exponentiellen Funktionen
+            def exponential_function1(x):
+                return 0.02 * sp.exp(-0.55 * x) + 0.01  # Abnahme
+
+            def exponential_function2(x):
+                return 0.01 * sp.exp(0.2 * (x - 20)) + 0.01 # Zunahme
+
+            # Zusammenführung Graphen
+            def ausfalls_wartung_motor(x):
+                condition = sp.LessThan(x, 6.2)
+                return sp.Piecewise((exponential_function1(x), condition), (exponential_function2(x), True))
+
+            # Berechnen Sie das bestimmte Integral von 0 bis 30
+            integral_result = sp.integrate(ausfalls_wartung_motor(x), (x, 0, nutzungsdauer)).evalf()
+
+            # Multiplizieren Sie das Integralergebnis mit den Routine-Wartungskosten
+            wartungskosten_elektrik = routine_wartung_motor_kosten * nutzungsdauer + integral_result * 2000 * anzahl_anlage
+
             
-        def exponential_function1(nutzungsdauer):
-            return 0.02 * np.exp(-0.55 * nutzungsdauer) + 0.01 # Abnahme
 
-        def exponential_function2(x):
-                return 0.01 *np.exp(0.2*(x-20)) + 0.01
-        def combined_function(x):
-                if x <= 6.2:
-                    return exponential_function1(nutzungsdauer)
-                else:
-                    return exponential_function2(nutzungsdauer)
-                
-            routine_wartung_zylinder = routine_wartung_zylinder_kosten * nutzungsdauer
-            ausfalls_wartung_zylinder =
-            routine_wartung_kompressor = routine_wartung_kompressor_kosten * nutzungsdauer
-            ausfalls_wartung_kompressor =
+            # Wartungskosten Pneumatik:
+            # Definieren Sie Symbole
+            x = sp.symbols('x')
 
-            wartungskosten_elektrik = routine_wartung_motor + ausfalls_wartung_motor 
-            wartungskosten_pneumatik = routine_wartung_zylinder + ausfalls_wartung_zylinder + routine_wartung_kompressor + ausfalls_wartung_kompressor
+            # Definieren Sie die exponentiellen Funktionen
+            def exponential_function1(x):
+                return 0.02 * sp.exp(-0.55 * x) + 0.01  # Abnahme
+
+            def exponential_function2(x):
+                return 0.01 * sp.exp(0.2 * (x - 20)) + 0.01 # Zunahme
+
+            # Zusammenführung Graphen
+            def ausfalls_wartung_motor(x):
+                condition = sp.LessThan(x, 6.2)
+                return sp.Piecewise((exponential_function1(x), condition), (exponential_function2(x), True))
+
+            # Berechnen Sie das bestimmte Integral von 0 bis 30
+            integral_result = sp.integrate(ausfalls_wartung_motor(x), (x, 0, nutzungsdauer)).evalf()
+
+            # Multiplizieren Sie das Integralergebnis mit den Routine-Wartungskosten
+            wartungskosten_pneumatik = routine_wartung_kompressor_kosten * routine_wartung_zylinder_kosten * nutzungsdauer + integral_result * 2000*100
+
 
             nutzungsdauer = self.manual_data["Nutzungsdauer"].get()
 
             gesamtkosten_elektrik = anschaffungskosten_elektrik + energiekosten_elektrik + wartungskosten_elektrik
             gesamtkosten_pneumatik = anschaffungskosten_pneumatik + energiekosten_pneumatik + wartungskosten_pneumatik
 
+
+
+        # Datenausgabe:
             # Optionally check if the calculation should start
             berechnung_starten = self.manual_data["BerechnungStarten"].get()
             if berechnung_starten == "Ja":
@@ -216,42 +257,32 @@ class FullScreenApp:
                 self.results_window.geometry("1920x1080")
                 self.results_window.title("Cost Analysis Results")
 
-                # Create Matplotlib figures for graphs
-                figure1 = Figure(figsize=(6, 4), tight_layout=True)
-                subplot1 = figure1.add_subplot(111, projection='3d')
-                subplot1.set_title('3D Graph')
-                # Replace with your actual data for plotting
-                subplot1.plot([1, 2, 3], [10, 20, 15], [5, 10, 8])
-
-                figure2 = Figure(figsize=(3, 2), tight_layout=True)
-                subplot2 = figure2.add_subplot(111)
-                subplot2.set_title('Multiple Plots')
-                # Replace with your actual data for plotting
-                subplot2.plot([1, 2, 3], [10, 20, 15], label='Wartungskosten')
-                subplot2.plot([1, 2, 3], [5, 8, 12], label='Betriebskosten')
-                subplot2.legend()
-
-                # Create FigureCanvasTkAgg widgets to display the graphs
-                self.canvas1 = FigureCanvasTkAgg(figure1, master=self.results_window)
-                self.canvas1.get_tk_widget().pack(side=tk.LEFT, fill=tk.BOTH, expand=1)
-
-                self.canvas2 = FigureCanvasTkAgg(figure2, master=self.results_window)
-                self.canvas2.get_tk_widget().pack(side=tk.RIGHT, fill=tk.BOTH, expand=1)
-
+        
                 # Display cost values
-                ttk.Label(self.results_window, text=f"Wartungskosten Elektrik: {wartungskosten_elektrik}", font=("Helvetica", 16)).pack(pady=10)
-                ttk.Label(self.results_window, text=f"Wartungskosten Pneumatik: {wartungskosten_pneumatik}", font=("Helvetica", 16)).pack(pady=10)
-                ttk.Label(self.results_window, text=f"Energiekosten Elektrik: {energiekosten_elektrik}", font=("Helvetica", 16)).pack(pady=10)
-                ttk.Label(self.results_window, text=f"Energiekosten Pneumatik: {energiekosten_pneumatik}", font=("Helvetica", 16)).pack(pady=10)
-                ttk.Label(self.results_window, text=f"Installationskosten Elektrik: {anschaffungskosten_elektrik}", font=("Helvetica", 16)).pack(pady=10)
-                ttk.Label(self.results_window, text=f"Installationskosten Pneumatik: {anschaffungskosten_pneumatik}", font=("Helvetica", 16)).pack(pady=10)
-                ttk.Label(self.results_window, text=f"Gesamtkosten Elektrik: {gesamtkosten_elektrik}", font=("Helvetica", 16)).pack(pady=10)
-                ttk.Label(self.results_window, text=f"Gesamtkosten Pneumatik: {gesamtkosten_pneumatik}", font=("Helvetica", 16)).pack(pady=10)
+                frame_elektrik = ttk.Frame(self.results_window)
+                frame_elektrik.pack(side=tk.LEFT, padx=10, pady=10)
+
+                frame_pneumatik = ttk.Frame(self.results_window)
+                frame_pneumatik.pack(side=tk.RIGHT, padx=10, pady=10)
+
+                ttk.Label(frame_elektrik, text=f"Wartungskosten Elektrik: {round(wartungskosten_elektrik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
+                ttk.Label(frame_elektrik, text=f"Energiekosten Elektrik: {round(energiekosten_elektrik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
+                ttk.Label(frame_elektrik, text=f"Installationskosten Elektrik: {round(anschaffungskosten_elektrik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
+                ttk.Label(frame_elektrik, text=f"Gesamtkosten Elektrik: {round(gesamtkosten_elektrik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
+
+                ttk.Label(frame_pneumatik, text=f"Wartungskosten Pneumatik: {round(wartungskosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
+                ttk.Label(frame_pneumatik, text=f"Energiekosten Pneumatik: {round(energiekosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
+                ttk.Label(frame_pneumatik, text=f"Installationskosten Pneumatik: {round(anschaffungskosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
+                ttk.Label(frame_pneumatik, text=f"Gesamtkosten Pneumatik: {round(gesamtkosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
+
 
                 # Create buttons for returning to main menu and changing component
                 ttk.Button(self.results_window, text="Hauptmenü", command=self.back_to_main_menu).pack(pady=10)
                 ttk.Button(self.results_window, text="Modify Data", command=self.modify_data).pack(pady=10)
-                
+
+
+
+        # Zurück zum Hauptmenü   
     def back_to_main_menu(self):
         # Placeholder confirmation message
         user_response = messagebox.askyesno("Back to Hauptmenü", "Do you want to go back to Hauptmenü?")
@@ -261,6 +292,10 @@ class FullScreenApp:
             app = FullScreenApp(root)
             root.mainloop()
 
+
+
+
+        # Als PDF speichern
     def save_results_as_pdf(self):
         file_path = filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("PDF files", "*.pdf")])
 
@@ -289,6 +324,10 @@ class FullScreenApp:
         
         return figure_image
     
+
+
+
+        # Options Fenster
     def open_options_window(self):
         options_window = tk.Toplevel(self.root)
         options_window.geometry("250x300")

@@ -1,0 +1,47 @@
+import tkinter as tk
+from tkinter import ttk
+
+class CostAnalysisApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Cost Analysis")
+        self.root.geometry("1929x1080")
+
+        # Dummy Daten
+        self.wartungskosten_elektrik = 1234.5678
+        self.energiekosten_elektrik = 5678.1234
+        self.anschaffungskosten_elektrik = 9876.5432
+        self.gesamtkosten_elektrik = 7890.1234
+
+        self.wartungskosten_pneumatik = 4321.8765
+        self.energiekosten_pneumatik = 8765.4321
+        self.anschaffungskosten_pneumatik = 5678.9876
+        self.gesamtkosten_pneumatik = 9012.3456
+
+        self.setup_ui()
+
+    def setup_ui(self):
+        frame_elektrik = ttk.Frame(self.root)
+        frame_elektrik.pack(side=tk.LEFT, padx=10, pady=10)
+
+        frame_pneumatik = ttk.Frame(self.root)
+        frame_pneumatik.pack(side=tk.RIGHT, padx=10, pady=10)
+
+        ttk.Label(frame_elektrik, text="Elektrisch", font=("Helvetica", 20, "bold")).pack(side=tk.TOP, pady=10)
+
+        ttk.Label(frame_elektrik, text=f"Wartungskosten Elektrik: {round(self.wartungskosten_elektrik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
+        ttk.Label(frame_elektrik, text=f"Energiekosten Elektrik: {round(self.energiekosten_elektrik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
+        ttk.Label(frame_elektrik, text=f"Installationskosten Elektrik: {round(self.anschaffungskosten_elektrik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
+        ttk.Label(frame_elektrik, text=f"Gesamtkosten Elektrik: {round(self.gesamtkosten_elektrik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
+
+        ttk.Label(frame_pneumatik, text="Pneumatisch", font=("Helvetica", 20, "bold")).pack(side=tk.TOP, pady=10)
+
+        ttk.Label(frame_pneumatik, text=f"Wartungskosten Pneumatik: {round(self.wartungskosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
+        ttk.Label(frame_pneumatik, text=f"Energiekosten Pneumatik: {round(self.energiekosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
+        ttk.Label(frame_pneumatik, text=f"Installationskosten Pneumatik: {round(self.anschaffungskosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
+        ttk.Label(frame_pneumatik, text=f"Gesamtkosten Pneumatik: {round(self.gesamtkosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = CostAnalysisApp(root)
+    root.mainloop()
