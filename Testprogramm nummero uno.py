@@ -260,25 +260,70 @@ class FullScreenApp:
         
                 # Display cost values
                 frame_elektrik = ttk.Frame(self.results_window)
-                frame_elektrik.pack(side=tk.LEFT, padx=10, pady=10)
+                frame_elektrik.pack(side=tk.LEFT, anchor=tk.NW, padx=10, pady=10)
 
                 frame_pneumatik = ttk.Frame(self.results_window)
-                frame_pneumatik.pack(side=tk.RIGHT, padx=10, pady=10)
-
-                ttk.Label(frame_elektrik, text=f"Wartungskosten Elektrik: {round(wartungskosten_elektrik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
-                ttk.Label(frame_elektrik, text=f"Energiekosten Elektrik: {round(energiekosten_elektrik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
-                ttk.Label(frame_elektrik, text=f"Installationskosten Elektrik: {round(anschaffungskosten_elektrik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
-                ttk.Label(frame_elektrik, text=f"Gesamtkosten Elektrik: {round(gesamtkosten_elektrik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
-
-                ttk.Label(frame_pneumatik, text=f"Wartungskosten Pneumatik: {round(wartungskosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
-                ttk.Label(frame_pneumatik, text=f"Energiekosten Pneumatik: {round(energiekosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
-                ttk.Label(frame_pneumatik, text=f"Installationskosten Pneumatik: {round(anschaffungskosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
-                ttk.Label(frame_pneumatik, text=f"Gesamtkosten Pneumatik: {round(gesamtkosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(anchor=tk.W)
+                frame_pneumatik.pack(side=tk.RIGHT, anchor=tk.NE, padx=10, pady=10)
 
 
-                # Create buttons for returning to main menu and changing component
-                ttk.Button(self.results_window, text="Hauptmenü", command=self.back_to_main_menu).pack(pady=10)
-                ttk.Button(self.results_window, text="Modify Data", command=self.modify_data).pack(pady=10)
+
+                # Elektrik Ausgabe
+                ttk.Label(frame_elektrik, text="Elektrisch", font=("Helvetica", 20, "bold")).pack(side=tk.TOP, pady=10)
+
+                ttk.Label(frame_elektrik, text=f"Wartungskosten Elektrik: {round(wartungskosten_elektrik, 2)}", font=("Helvetica", 16)).pack(pady=5)
+                ttk.Label(frame_elektrik, text=f"Energiekosten Elektrik: {round(energiekosten_elektrik, 2)}", font=("Helvetica", 16)).pack(pady=5)
+                ttk.Label(frame_elektrik, text=f"Installationskosten Elektrik: {round(anschaffungskosten_elektrik, 2)}", font=("Helvetica", 16)).pack(pady=5)
+                ttk.Label(frame_elektrik, text=f"Gesamtkosten Elektrik: {round(gesamtkosten_elektrik, 2)}", font=("Helvetica", 16)).pack(pady=5)
+
+                # Frame für Graphen Elektrik
+                frame_graph_elektrik = ttk.Frame(frame_elektrik)
+                frame_graph_elektrik.pack(side=tk.BOTTOM, anchor=tk.S, pady=10)
+
+                # Hier vier Testgraphen für Elektrik hinzufügen
+                figure_elektrik = Figure(figsize=(7.2, 5.5), tight_layout=True)
+
+                for i in range(1, 5):
+                    subplot_elektrik = figure_elektrik.add_subplot(2, 2, i)
+                    subplot_elektrik.plot([1, 2, 3, 4], [10 * i, 20 * i, 15 * i, 25 * i])
+                    subplot_elektrik.set_xlabel('X-Achse')
+                    subplot_elektrik.set_ylabel(f'Y-Achse {i}')
+                    subplot_elektrik.set_title(f'Titel {i}')
+
+                canvas_elektrik = FigureCanvasTkAgg(figure_elektrik, master=frame_graph_elektrik)
+                canvas_elektrik.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+
+
+                # Pneumatik Ausgabe
+                ttk.Label(frame_pneumatik, text="Pneumatisch", font=("Helvetica", 20, "bold")).pack(side=tk.TOP, pady=10)
+
+                ttk.Label(frame_pneumatik, text=f"Wartungskosten Pneumatik: {round(wartungskosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(pady=5)
+                ttk.Label(frame_pneumatik, text=f"Energiekosten Pneumatik: {round(energiekosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(pady=5)
+                ttk.Label(frame_pneumatik, text=f"Installationskosten Pneumatik: {round(anschaffungskosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(pady=5)
+                ttk.Label(frame_pneumatik, text=f"Gesamtkosten Pneumatik: {round(gesamtkosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(pady=5)
+
+                # Frame für Graphen Pneumatik
+                frame_graph_pneumatik = ttk.Frame(frame_pneumatik)
+                frame_graph_pneumatik.pack(side=tk.BOTTOM, anchor=tk.S, pady=10)
+                # Hier vier Testgraphen für Pneumatik hinzufügen
+                figure_pneumatik = Figure(figsize=(7.2, 5.5), tight_layout=True)
+
+                for i in range(1, 5):
+                    subplot_pneumatik = figure_pneumatik.add_subplot(2, 2, i)
+                    subplot_pneumatik.plot([1, 2, 3, 4], [5 * i, 15 * i, 10 * i, 20 * i])
+                    subplot_pneumatik.set_xlabel('X-Achse')
+                    subplot_pneumatik.set_ylabel(f'Y-Achse {i}')
+                    subplot_pneumatik.set_title(f'Titel {i}')
+
+                canvas_pneumatik = FigureCanvasTkAgg(figure_pneumatik, master=frame_graph_pneumatik)
+                canvas_pneumatik.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+          
+                frame_datenausgabe = ttk.Frame(self.results_window)
+                frame_datenausgabe.place(x=675, y=0)
+
+                ttk.Label(frame_datenausgabe, text="Datenausgabe", font=("Helvetica", 20, "bold")).pack(side=tk.TOP, pady=10)
+                ttk.Button(frame_datenausgabe, text="Hauptmenü", command=self.back_to_main_menu).pack(side=tk.TOP, pady=10)
+                ttk.Button(frame_datenausgabe, text="Modify manual data", command=self.modify_data).pack(side=tk.TOP, pady=10)
+             
 
 
 
