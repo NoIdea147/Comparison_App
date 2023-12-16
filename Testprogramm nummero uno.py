@@ -234,7 +234,7 @@ class FullScreenApp:
                 return sp.Piecewise((exponential_function1_p(x), condition), (exponential_function2_p(x), True))
 
             # Berechnen Sie das bestimmte Integral von 0 bis 30
-            integral_result = sp.integrate(ausfalls_wartung_pneuamtik(x), (x, 0, nutzungsdauer)).evalf()
+            integral_result = sp.integrate(ausfalls_wartung_pneumatik(x), (x, 0, nutzungsdauer)).evalf()
 
             # Multiplizieren Sie das Integralergebnis mit den Routine-Wartungskosten
             wartungskosten_pneumatik = routine_wartung_kompressor_kosten * routine_wartung_zylinder_kosten * nutzungsdauer + integral_result * 2000 * anzahl_anlage + integral_result * 10000
@@ -369,7 +369,7 @@ class FullScreenApp:
                 routine_wartungskosten_pneumatik = (routine_wartung_zylinder_kosten * anzahl_anlage + routine_wartung_kompressor_kosten) * x 
 
                 # 2. energiekosten_elektrik
-                energiekosten_pneuamtik = leistung_pneumatik * stunden_pro_woche * x * anzahl_anlage * strompreis_entry 
+                energiekosten_pneumatik = leistung_pneumatik * stunden_pro_woche * x * anzahl_anlage * strompreis_entry 
 
                 # 3. ausfalls_wartung_pneumatik
                 def exponential_function1(x):
