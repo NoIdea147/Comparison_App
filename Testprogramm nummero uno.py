@@ -213,8 +213,8 @@ class FullScreenApp:
             integral_result = sp.integrate(ausfalls_wartung_motor(x), (x, 0, nutzungsdauer)).evalf()
 
             # Multiplizieren Sie das Integralergebnis mit den Routine-Wartungskosten
-            wartungskosten_elektrik = routine_wartung_motor_kosten * nutzungsdauer + integral_result * 2000 * anzahl_anlage
-            routine_wartungskosten_elektrik = routine_wartung_motor_kosten * nutzungsdauer
+            wartungskosten_elektrik = routine_wartung_motor_kosten * nutzungsdauer * anzahl_anlage + integral_result * 2000 * anzahl_anlage
+            routine_wartungskosten_elektrik = anzahl_anlage * routine_wartung_motor_kosten * nutzungsdauer
             
 
             # Wartungskosten Pneumatik:
@@ -242,8 +242,10 @@ class FullScreenApp:
 
             nutzungsdauer = self.manual_data["Nutzungsdauer"].get()
 
-            gesamtkosten_elektrik = anschaffungskosten_elektrik + energiekosten_elektrik + wartungskosten_elektrik
-            gesamtkosten_pneumatik = anschaffungskosten_pneumatik + energiekosten_pneumatik + wartungskosten_pneumatik
+            gesamtkosten_elektrik = anschaffungskosten_elektrik + wartungskosten_elektrik + energiekosten_elektrik
+            gesamtkosten_pneumatik = anschaffungskosten_pneumatik + (leistung_pneumatik * stunden_pro_woche * anzahl_anlage * strompreis_entry * nutzungsdauer + routine_wartung_kompressor_kosten * routine_wartung_zylinder_kosten * nutzungsdauer + integral_result * 2000 * anzahl_anlage + integral_result * 10000)
+
+          
 
 
 
@@ -290,16 +292,10 @@ class FullScreenApp:
                 nutzungsdauer = int(self.manual_data["Nutzungsdauer"].get())
 
                 # 1. routine_wartungskosten_elektrik
-                routine_wartung_motor_kosten = 250
-                routine_wartungskosten_elektrik = routine_wartung_motor_kosten * x / nutzungsdauer
+                routine_wartungskosten_elektrik = routine_wartung_motor_kosten * x 
 
                 # 2. energiekosten_elektrik
-                leistung_eletrik = 0.07
-                stunden_pro_woche = 24 * 7  # Annahme für Dauerbetrieb
-                anzahl_anlage = 100  # Annahme für große Anlage
-                strompreis_entry = 0.41
-                wirkungsgrad_elektrisch_entry = 0.95
-                energiekosten_elektrik = leistung_eletrik * stunden_pro_woche * x * anzahl_anlage * strompreis_entry * wirkungsgrad_elektrisch_entry / nutzungsdauer
+                energiekosten_elektrik = leistung_eletrik * stunden_pro_woche * x * anzahl_anlage * strompreis_entry * wirkungsgrad_elektrisch_entry 
 
                 # 3. ausfalls_wartung_motor
                 def exponential_function1(x):
@@ -315,26 +311,40 @@ class FullScreenApp:
                 integral_result = sp.integrate(ausfalls_wartung_motor(x), (x, 0, nutzungsdauer)).evalf()
 
                 # 4. gesamtkosten_elektrik
-                anschaffungskosten_elektrik = 3000
-                gesamtkosten_elektrik = anschaffungskosten_elektrik + energiekosten_elektrik + routine_wartungskosten_elektrik
+                # Berechnung der Werte
+                x_values = range(nutzungsdauer + 1)
+                routine_wartungskosten_values = [routine_wartungskosten_elektrik.subs(x, i).evalf() for i in x_values]
+                energiekosten_values = [energiekosten_elektrik.subs(x, i).evalf() for i in x_values]
+                ausfall_wartung_motor_values = [2000 * anzahl_anlage * ausfalls_wartung_motor(i).evalf() for i in x_values]
+
+                # Erstellen des Gesamtgraphen
+                gesamt_graph = [anschaffungskosten_elektrik + routine + energie + ausfall for routine, energie, ausfall in zip(routine_wartungskosten_values, energiekosten_values, ausfall_wartung_motor_values)]
 
                 # Berechnung und Hinzufügen der Graphen
                 subplot1_elektrik = figure_elektrik.add_subplot(2, 2, 1)
-                subplot1_elektrik.plot([i for i in range(nutzungsdauer + 1)], [routine_wartungskosten_elektrik.subs(x, i) for i in range(nutzungsdauer + 1)])
+                subplot1_elektrik.plot([i for i in range(nutzungsdauer + 1)], [routine_wartungskosten_elektrik.subs(x, i) for i in range(nutzungsdauer + 1)], linestyle='-', color='orange')
                 subplot1_elektrik.set_title("Routine Wartungskosten")
+                subplot1_elektrik.set_xlabel("Nutzungsdauer [Jahre]")
+                subplot1_elektrik.set_ylabel("Kosten [€]")
 
                 subplot2_elektrik = figure_elektrik.add_subplot(2, 2, 2)
-                subplot2_elektrik.plot([i for i in range(nutzungsdauer + 1)], [energiekosten_elektrik.subs(x, i) for i in range(nutzungsdauer + 1)])
+                subplot2_elektrik.plot([i for i in range(nutzungsdauer + 1)], [energiekosten_elektrik.subs(x, i) for i in range(nutzungsdauer + 1)], linestyle='-', color='orange')
                 subplot2_elektrik.set_title("Energiekosten Elektrik")
+                subplot2_elektrik.set_xlabel("Nutzungsdauer [Jahre]")
+                subplot2_elektrik.set_ylabel("Kosten [€]")
 
                 subplot3_elektrik = figure_elektrik.add_subplot(2, 2, 3)
-                subplot3_elektrik.plot([i for i in range(nutzungsdauer + 1)], [ausfalls_wartung_motor(i) for i in range(nutzungsdauer + 1)])
+                subplot3_elektrik.plot([i for i in range(nutzungsdauer + 1)], [anzahl_anlage * 2000 * ausfalls_wartung_motor(i) for i in range(nutzungsdauer + 1)], linestyle='-', color='orange')
                 subplot3_elektrik.set_title("Ausfalls-/Wartungskosten Motor")
+                subplot3_elektrik.set_xlabel("Nutzungsdauer [Jahre]")
+                subplot3_elektrik.set_ylabel("Kosten [€]")
 
                 subplot4_elektrik = figure_elektrik.add_subplot(2, 2, 4)
-                subplot4_elektrik.plot([0, 1, 2], [anschaffungskosten_elektrik, energiekosten_elektrik.subs(x, nutzungsdauer), integral_result])
+                subplot4_elektrik.plot([i for i in range(nutzungsdauer + 1)], gesamt_graph, linestyle='-', color='orange')
                 subplot4_elektrik.set_title("Gesamtkosten Elektrik")
-
+                subplot4_elektrik.set_xlabel("Nutzungsdauer [Jahre]")
+                subplot4_elektrik.set_ylabel("Kosten [€]")
+                
                 canvas_elektrik = FigureCanvasTkAgg(figure_elektrik, master=frame_graph_elektrik)
                 canvas_elektrik.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
