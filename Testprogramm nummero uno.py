@@ -222,32 +222,29 @@ class FullScreenApp:
             x = sp.symbols('x')
 
             # Definieren Sie die exponentiellen Funktionen
-            def exponential_function1(x):
+            def exponential_function1_p(x):
                 return 0.02 * sp.exp(-0.55 * x) + 0.01  # Abnahme
 
-            def exponential_function2(x):
+            def exponential_function2_p(x):
                 return 0.01 * sp.exp(0.2 * (x - 20)) + 0.01 # Zunahme
 
             # Zusammenführung Graphen
-            def ausfalls_wartung_motor(x):
+            def ausfalls_wartung_pneumatik(x):
                 condition = sp.LessThan(x, 6.2)
-                return sp.Piecewise((exponential_function1(x), condition), (exponential_function2(x), True))
+                return sp.Piecewise((exponential_function1_p(x), condition), (exponential_function2_p(x), True))
 
             # Berechnen Sie das bestimmte Integral von 0 bis 30
-            integral_result = sp.integrate(ausfalls_wartung_motor(x), (x, 0, nutzungsdauer)).evalf()
+            integral_result = sp.integrate(ausfalls_wartung_pneuamtik(x), (x, 0, nutzungsdauer)).evalf()
 
             # Multiplizieren Sie das Integralergebnis mit den Routine-Wartungskosten
             wartungskosten_pneumatik = routine_wartung_kompressor_kosten * routine_wartung_zylinder_kosten * nutzungsdauer + integral_result * 2000 * anzahl_anlage + integral_result * 10000
-
+            routine_wartungskosten_pneumatik = (anzahl_anlage * routine_wartung_zylinder_kosten + routine_wartung_kompressor_kosten) * nutzungsdauer
 
             nutzungsdauer = self.manual_data["Nutzungsdauer"].get()
 
             gesamtkosten_elektrik = anschaffungskosten_elektrik + wartungskosten_elektrik + energiekosten_elektrik
-            gesamtkosten_pneumatik = anschaffungskosten_pneumatik + (leistung_pneumatik * stunden_pro_woche * anzahl_anlage * strompreis_entry * nutzungsdauer + routine_wartung_kompressor_kosten * routine_wartung_zylinder_kosten * nutzungsdauer + integral_result * 2000 * anzahl_anlage + integral_result * 10000)
-
+            gesamtkosten_pneumatik = anschaffungskosten_pneumatik + wartungskosten_pneumatik + energiekosten_pneumatik
           
-
-
 
         # Datenausgabe:
             # Optionally check if the calculation should start
@@ -292,7 +289,7 @@ class FullScreenApp:
                 nutzungsdauer = int(self.manual_data["Nutzungsdauer"].get())
 
                 # 1. routine_wartungskosten_elektrik
-                routine_wartungskosten_elektrik = routine_wartung_motor_kosten * x 
+                routine_wartungskosten_elektrik = routine_wartung_motor_kosten * anzahl_anlage * x 
 
                 # 2. energiekosten_elektrik
                 energiekosten_elektrik = leistung_eletrik * stunden_pro_woche * x * anzahl_anlage * strompreis_entry * wirkungsgrad_elektrisch_entry 
@@ -364,24 +361,69 @@ class FullScreenApp:
                 # Graphen für Pneumatik
                 figure_pneumatik = Figure(figsize=(7.2, 5.5), tight_layout=True)
 
-                functions = [
-                    {"func": np.sin, "title": "Routine - Wartungskosten", "x_label": "Nutzungsdauer in Jahre", "y_label": "Kosten in €"},
-                    {"func": np.cos, "title": "Energiekosten", "x_label": "Nutzungsdauer in Jahre", "y_label": "Kosten in €"},
-                    {"func": lambda x: x**2, "title": "Ausfalls - Wartungskosten", "x_label": "Nutzungsdauer in Jahre", "y_label": "Kosten in €"},
-                    {"func": np.exp, "title": "Gesamtkosten", "x_label": "Nutzungsdauer in Jahre", "y_label": "Kosten in €"}
-                ]
+                # Parameter für Berechnungen
+                x = sp.symbols('x')
+                nutzungsdauer = int(self.manual_data["Nutzungsdauer"].get())
 
-                for i, config in enumerate(functions, start=1):
-                    subplot_pneumatik = figure_pneumatik.add_subplot(2, 2, i)
-                    x_values = np.linspace(0, 4, 100)
-                    y_values = config["func"](x_values)
-                    subplot_pneumatik.plot(x_values, y_values, color='blue')  
-                    subplot_pneumatik.set_xlabel(config["x_label"])
-                    subplot_pneumatik.set_ylabel(config["y_label"])
-                    subplot_pneumatik.set_title(config["title"])
+                # 1. routine_wartungskosten_elektrik
+                routine_wartungskosten_pneumatik = (routine_wartung_zylinder_kosten * anzahl_anlage + routine_wartung_kompressor_kosten) * x 
 
-                canvas_pneumatik = FigureCanvasTkAgg(figure_pneumatik, master=frame_graph_pneumatik)
+                # 2. energiekosten_elektrik
+                energiekosten_pneuamtik = leistung_pneumatik * stunden_pro_woche * x * anzahl_anlage * strompreis_entry 
+
+                # 3. ausfalls_wartung_pneumatik
+                def exponential_function1(x):
+                    return 0.02 * sp.exp(-0.55 * x) + 0.02
+
+                def exponential_function2(x):
+                    return 0.01 * sp.exp(0.2 * (x - 20)) + 0.02
+
+                def ausfalls_wartung_motor(x):
+                    condition = sp.LessThan(x, 6.2)
+                    return sp.Piecewise((exponential_function1(x), condition), (exponential_function2(x), True))
+
+                integral_result = sp.integrate(2*ausfalls_wartung_motor(x), (x, 0, nutzungsdauer)).evalf()
+
+                # 4. gesamtkosten_elektrik
+                # Berechnung der Werte
+                x_values = range(nutzungsdauer + 1)
+                routine_wartungskosten_values = [routine_wartungskosten_pneumatik.subs(x, i).evalf() for i in x_values]
+                energiekosten_values = [energiekosten_pneumatik.subs(x, i).evalf() for i in x_values]
+                ausfall_wartung_pneuamtik_values = [2000 * anzahl_anlage * ausfalls_wartung_motor(i).evalf() for i in x_values]
+
+                # Erstellen des Gesamtgraphen
+                gesamt_graph_pneumatik = [anschaffungskosten_pneumatik + routine + energie + ausfall for routine, energie, ausfall in zip(routine_wartungskosten_values, energiekosten_values, ausfall_wartung_pneuamtik_values)]
+
+                # Berechnung und Hinzufügen der Graphen
+                subplot1_pneumatik = figure_pneumatik.add_subplot(2, 2, 1)
+                subplot1_pneumatik.plot([i for i in range(nutzungsdauer + 1)], [routine_wartungskosten_pneumatik.subs(x, i) for i in range(nutzungsdauer + 1)], linestyle='-', color='blue')
+                subplot1_pneumatik.set_title("Routine Wartungskosten")
+                subplot1_pneumatik.set_xlabel("Nutzungsdauer [Jahre]")
+                subplot1_pneumatik.set_ylabel("Kosten [€]")
+
+                subplot2_pneumatik = figure_pneumatik.add_subplot(2, 2, 2)
+                subplot2_pneumatik.plot([i for i in range(nutzungsdauer + 1)], [energiekosten_pneumatik.subs(x, i) for i in range(nutzungsdauer + 1)], linestyle='-', color='blue')
+                subplot2_pneumatik.set_title("Energiekosten Elektrik")
+                subplot2_pneumatik.set_xlabel("Nutzungsdauer [Jahre]")
+                subplot2_pneumatik.set_ylabel("Kosten [€]")
+
+                subplot3_pneumatik = figure_pneumatik.add_subplot(2, 2, 3)
+                subplot3_pneumatik.plot([i for i in range(nutzungsdauer + 1)], [anzahl_anlage * 2000 * ausfalls_wartung_motor(i) for i in range(nutzungsdauer + 1)], linestyle='-', color='blue')
+                subplot3_pneumatik.set_title("Ausfalls-/Wartungskosten Motor")
+                subplot3_pneumatik.set_xlabel("Nutzungsdauer [Jahre]")
+                subplot3_pneumatik.set_ylabel("Kosten [€]")
+
+                subplot4_pneumatik = figure_pneumatik.add_subplot(2, 2, 4)
+                subplot4_pneumatik.plot([i for i in range(nutzungsdauer + 1)], gesamt_graph_pneumatik, linestyle='-', color='blue')
+                subplot4_pneumatik.set_title("Gesamtkosten Elektrik")
+                subplot4_pneumatik.set_xlabel("Nutzungsdauer [Jahre]")
+                subplot4_pneumatik.set_ylabel("Kosten [€]")
+                
+                canvas_pneumatik = FigureCanvasTkAgg(figure_elektrik, master=frame_graph_elektrik)
                 canvas_pneumatik.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+
+
+
 
                 # Frame für Datenausgabe im Ergebnisfenster
                 frame_datenausgabe = ttk.Frame(self.results_window)
