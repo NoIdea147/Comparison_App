@@ -11,6 +11,7 @@ from PIL import Image, ImageTk
 import numpy as np
 import matplotlib.pyplot as plt
 import sympy as sp
+import math
 
 class FullScreenApp:
     def __init__(self, root):
@@ -128,11 +129,11 @@ class FullScreenApp:
         wartungskosten_dropdown.pack(pady=5)
 
         ttk.Label(modify_window, text="Energiekosten:").pack(pady=10)
-        energiekosten_dropdown = ttk.Combobox(modify_window, values=["vernachlässigbar", "unwichtig", "neutral", "wichtig", "sehr wichtig"], textvariable=self.manual_data["Wartungskosten"])
+        energiekosten_dropdown = ttk.Combobox(modify_window, values=["vernachlässigbar", "unwichtig", "neutral", "wichtig", "sehr wichtig"], textvariable=self.manual_data["Energiekosten"])
         energiekosten_dropdown.pack(pady=5)
 
         ttk.Label(modify_window, text="Anschaffungskosten:").pack(pady=10)
-        anschaffungskosten_dropdown = ttk.Combobox(modify_window, values=["vernachlässigbar", "unwichtig", "neutral", "wichtig", "sehr wichtig"], textvariable=self.manual_data["Wartungskosten"])
+        anschaffungskosten_dropdown = ttk.Combobox(modify_window, values=["vernachlässigbar", "unwichtig", "neutral", "wichtig", "sehr wichtig"], textvariable=self.manual_data["Anschaffungskosten"])
         anschaffungskosten_dropdown.pack(pady=5)
 
         ttk.Button(modify_window, text="Confirm Data", command=self.change_data).pack(pady=10)
@@ -152,22 +153,24 @@ class FullScreenApp:
         if self.selected_component:
             data = self.component_data[self.selected_component]
 
+            # Nur Vorübergehend:
+            strompreis_entry = 0.41
+            wirkungsgrad_elektrisch_entry = 0.95
+            wirkungsgrad_pneumatik_entry = 0.27
+            überschneidungsfaktor = 0.6
+
             # Perform calculations using manual data
             schichtmodell = self.manual_data["Schichtmodell"].get()
             anlagen_groesse = self.manual_data["AnlagenGroesse"].get()
-            anschaffungskosten_kompressor_preis = 10000
-            anschaffungskosten_elektrik_preis=3000
-            anschaffungskosten_pneumatik_preis=1000
-            leistung_eletrik=0.07
-            leistung_pneumatik=0.28
-            routine_wartung_kompressor_kosten = 500
-            routine_wartung_motor_kosten = 250
-            routine_wartung_zylinder_kosten = 250
             nutzungsdauer = self.manual_data["Nutzungsdauer"].get()
+            masse = self.manual_data["Masse"].get()
+            durchsatz = self.manual_data["Durchsatz"].get()
+            bew_wartungskosten = self.manual_data["Wartungskosten"].get()
+            bew_energiekosten = self.manual_data["Energiekosten"].get()
+            bew_anschaffungskosten = self.manual_data["Anschaffungskosten"].get()
 
-            # Nur Vorübergehend:
-            strompreis_entry=0.41
-            wirkungsgrad_elektrisch_entry=0.95
+            weg = 0.1
+
 
             # Auswärtung der Größe der Anlage
             if anlagen_groesse=="Klein (10 Stück)":
@@ -185,13 +188,107 @@ class FullScreenApp:
             elif schichtmodell=="Dauerbetrieb":
                 stunden_pro_woche=24*7
 
+            # Auswärtung maximal Gewicht Angabe
+            if masse=="Wenig Gewicht (bis 10kg)":
+                max_masse=10
+            elif masse=="Mittleres Gewicht (bis 30kg)":
+                max_masse=30
+            elif masse=="Hohes Gewicht (bis 50kg)":
+                max_masse=50
+
+            # Auswärtung Bewertung Wartungskosten
+            if bew_wartungskosten=="vernachlässigbar":
+                bew_w = 0
+            elif bew_wartungskosten=="unwichtig":
+                bew_w = 1
+            elif bew_wartungskosten=="neutral":
+                bew_w = 2
+            elif bew_wartungskosten=="wichtig":
+                bew_w = 3
+            elif bew_wartungskosten=="sehr wichtig":
+                bew_w = 4
+
+            # Auswärtung Bewertung Energiekosten
+            if bew_energiekosten=="vernachlässigbar":
+                bew_e = 1
+            elif bew_energiekosten=="unwichtig":
+                bew_e = 1
+            elif bew_energiekosten=="neutral":
+                bew_e = 1
+            elif bew_energiekosten=="wichtig":
+                bew_e = 1
+            elif bew_energiekosten=="sehr wichtig":
+                bew_e = 2
+            
+
+            print(bew_w)
+
+            # Auswärtung Bewertung Anschaffungskosten
+            if bew_anschaffungskosten=="vernachlässigbar":
+                bew_a = 1
+            elif bew_anschaffungskosten=="unwichtig":
+                bew_a = 1
+            elif bew_anschaffungskosten=="neutral":
+                bew_a = 1
+            elif bew_anschaffungskosten=="wichtig":
+                bew_a = 1
+            elif bew_anschaffungskosten=="sehr wichtig":
+                bew_a = 2
+            
+            # Angaben Elektrik          
+            anschaffungskosten_elektrik_preis = 3000
+            routine_wartung_motor_kosten = 250
+            max_leistung_eletrik = 0.35
+            v_elektrisch = weg/0.2
+            # Berechnung Motor
+            leistung_elektrik_st = max_masse * 9.81 * v_elektrisch / 1000
+            leistung_elektrik_b = max_leistung_eletrik - leistung_elektrik_st
+            wurzel = leistung_elektrik_b * 1000 * 2 / max_masse
+            square_root = np.sqrt(wurzel)
+            zeit_b = 0.1 / square_root
+            # Definition der Durchschnittlichen Leistung in einer Minute
+            leistung_elektrik = (0.2 * durchsatz * leistung_elektrik_st + zeit_b * durchsatz * leistung_elektrik_b)/60
+
+
+            # Angaben Pneumatik
+            anschaffungskosten_kompressor_preis = 10000
+            anschaffungskosten_pneumatik_preis=1000
+            routine_wartung_kompressor_kosten = 500
+            routine_wartung_zylinder_kosten = 250
+            vstrom_zylinder = 0.205
+            ges_vstrom_zylinder = vstrom_zylinder * anzahl_anlage * überschneidungsfaktor / wirkungsgrad_pneumatik_entry
+
+
+            # Berechnung der Leistung anhand der Kompressoren
+            leistung_kompressor_klein = 10
+            druck_kompressor_klein = 600000
+            vstrom_kompressor_klein = leistung_kompressor_klein *1000 * 1000/druck_kompressor_klein
+
+            leistung_kompressor_mittel = 20
+            druck_kompressor_mittel = 600000
+            vstrom_kompressor_mittel = leistung_kompressor_mittel *1000 * 1000/druck_kompressor_mittel
+
+            leistung_kompressor_groß = 30
+            druck_kompressor_groß = 600000
+            vstrom_kompressor_groß = leistung_kompressor_groß *1000 * 1000/druck_kompressor_groß
+
+            if ges_vstrom_zylinder < vstrom_kompressor_klein:            
+                leistung_pneumatik = leistung_kompressor_klein
+
+            elif ges_vstrom_zylinder < vstrom_kompressor_mittel and ges_vstrom_zylinder >= vstrom_kompressor_klein:  
+                leistung_pneumatik = leistung_kompressor_mittel
+
+            elif ges_vstrom_zylinder < vstrom_kompressor_groß and ges_vstrom_zylinder >= vstrom_kompressor_mittel:
+                leistung_pneumatik = leistung_kompressor_groß
+
+
             # Anschaffungskosten Berechnung
-            anschaffungskosten_elektrik = anschaffungskosten_elektrik_preis * anzahl_anlage
-            anschaffungskosten_pneumatik = anschaffungskosten_pneumatik_preis * anzahl_anlage + anschaffungskosten_kompressor_preis
+            anschaffungskosten_elektrik = anschaffungskosten_elektrik_preis * anzahl_anlage * bew_a
+            anschaffungskosten_pneumatik = (anschaffungskosten_pneumatik_preis * anzahl_anlage + anschaffungskosten_kompressor_preis) * bew_a
 
             # Energiekosten Berechnung
-            energiekosten_elektrik = leistung_eletrik * stunden_pro_woche * nutzungsdauer * anzahl_anlage * strompreis_entry * wirkungsgrad_elektrisch_entry
-            energiekosten_pneumatik = leistung_pneumatik * stunden_pro_woche * nutzungsdauer * anzahl_anlage * strompreis_entry 
+            energiekosten_elektrik = leistung_elektrik * stunden_pro_woche * 52 * nutzungsdauer * anzahl_anlage * strompreis_entry * wirkungsgrad_elektrisch_entry * bew_e
+            energiekosten_pneumatik = leistung_pneumatik * stunden_pro_woche * 52 *  nutzungsdauer * strompreis_entry * bew_e
           
             # Wartungskosten Elektrik:                  
             # Definieren Sie Symbole
@@ -213,7 +310,7 @@ class FullScreenApp:
             integral_result = sp.integrate(ausfalls_wartung_motor(x), (x, 0, nutzungsdauer)).evalf()
 
             # Multiplizieren Sie das Integralergebnis mit den Routine-Wartungskosten
-            wartungskosten_elektrik = routine_wartung_motor_kosten * nutzungsdauer * anzahl_anlage + integral_result * 2000 * anzahl_anlage
+            wartungskosten_elektrik = (routine_wartung_motor_kosten * nutzungsdauer * anzahl_anlage + integral_result * 2000 * anzahl_anlage) * bew_w
             routine_wartungskosten_elektrik = anzahl_anlage * routine_wartung_motor_kosten * nutzungsdauer
             
 
@@ -237,10 +334,8 @@ class FullScreenApp:
             integral_result = sp.integrate(ausfalls_wartung_pneumatik(x), (x, 0, nutzungsdauer)).evalf()
 
             # Multiplizieren Sie das Integralergebnis mit den Routine-Wartungskosten
-            wartungskosten_pneumatik = routine_wartung_kompressor_kosten * routine_wartung_zylinder_kosten * nutzungsdauer + integral_result * 2000 * anzahl_anlage + integral_result * 10000
+            wartungskosten_pneumatik = ((routine_wartung_kompressor_kosten  + routine_wartung_zylinder_kosten * anzahl_anlage) * nutzungsdauer + integral_result * 2000 * anzahl_anlage + integral_result * 10000) * bew_w
             routine_wartungskosten_pneumatik = (anzahl_anlage * routine_wartung_zylinder_kosten + routine_wartung_kompressor_kosten) * nutzungsdauer
-
-            nutzungsdauer = self.manual_data["Nutzungsdauer"].get()
 
             gesamtkosten_elektrik = anschaffungskosten_elektrik + wartungskosten_elektrik + energiekosten_elektrik
             gesamtkosten_pneumatik = anschaffungskosten_pneumatik + wartungskosten_pneumatik + energiekosten_pneumatik
@@ -289,10 +384,10 @@ class FullScreenApp:
                 nutzungsdauer = int(self.manual_data["Nutzungsdauer"].get())
 
                 # 1. routine_wartungskosten_elektrik
-                routine_wartungskosten_elektrik = routine_wartung_motor_kosten * anzahl_anlage * x 
+                routine_wartungskosten_elektrik = routine_wartung_motor_kosten * anzahl_anlage * x * bew_w
 
                 # 2. energiekosten_elektrik
-                energiekosten_elektrik = leistung_eletrik * stunden_pro_woche * x * anzahl_anlage * strompreis_entry * wirkungsgrad_elektrisch_entry 
+                energiekosten_elektrik = leistung_elektrik * stunden_pro_woche * 52 * x * anzahl_anlage * strompreis_entry * wirkungsgrad_elektrisch_entry * bew_e
 
                 # 3. ausfalls_wartung_motor
                 x = sp.symbols('x')
@@ -315,12 +410,14 @@ class FullScreenApp:
                 # 4. gesamtkosten_elektrik
                 # Berechnung der Werte
                 x_values = range(nutzungsdauer + 1)
-                routine_wartungskosten_values = [routine_wartungskosten_elektrik.subs(x, i).evalf() for i in x_values]
-                energiekosten_values = [energiekosten_elektrik.subs(x, i).evalf() for i in x_values]
-                ausfall_wartung_motor_values = [20000 * anzahl_anlage * ausfalls_wartung_motor(i).evalf() for i in x_values]
+                elektrik_routine_wartungskosten_values = [routine_wartungskosten_elektrik.subs(x, i).evalf() for i in x_values]
+                elektrik_energiekosten_values = [energiekosten_elektrik.subs(x, i).evalf() for i in x_values]
+                ausfall_wartung_motor_values = [2000 * anzahl_anlage * ausfalls_wartung_motor(i).evalf() for i in x_values]
+
+                print(ausfall_wartung_motor_values)
 
                 # Erstellen des Gesamtgraphen
-                gesamt_graph_elektrik = [anschaffungskosten_elektrik + routine + energie + ausfall for routine, energie, ausfall in zip(routine_wartungskosten_values, energiekosten_values, ausfall_wartung_motor_values)]
+                gesamt_graph_elektrik = [anschaffungskosten_elektrik + routine + energie + ausfall for routine, energie, ausfall in zip(elektrik_routine_wartungskosten_values, elektrik_energiekosten_values, ausfall_wartung_motor_values)]
 
                 # Berechnung und Hinzufügen der Graphen
                 subplot1_elektrik = figure_elektrik.add_subplot(2, 2, 1)
@@ -374,7 +471,7 @@ class FullScreenApp:
                 routine_wartungskosten_pneumatik = (routine_wartung_zylinder_kosten * anzahl_anlage + routine_wartung_kompressor_kosten) * x 
 
                 # 2. energiekosten_pneumatik
-                energiekosten_pneumatik = leistung_pneumatik * stunden_pro_woche * x * anzahl_anlage * strompreis_entry 
+                energiekosten_pneumatik = leistung_pneumatik * stunden_pro_woche * 52 *  x * strompreis_entry 
 
                 # 3. ausfalls_wartung_pneumatik
                 def exponential_function1(x):
@@ -392,12 +489,14 @@ class FullScreenApp:
                 # 4. gesamtkosten pneumatik
                 # Berechnung der Werte
                 x_values = range(nutzungsdauer + 1)
-                routine_wartungskosten_values = [routine_wartungskosten_pneumatik.subs(x, i).evalf() for i in x_values]
-                energiekosten_values = [energiekosten_pneumatik.subs(x, i).evalf() for i in x_values]
-                ausfall_wartung_pneuamtik_values = [20000 * anzahl_anlage * ausfalls_wartung_pneumatik(i).evalf() for i in x_values]
+                pneumatik_routine_wartungskosten_values = [routine_wartungskosten_pneumatik.subs(x, i).evalf() for i in x_values]
+                pneumatik_energiekosten_values = [energiekosten_pneumatik.subs(x, i).evalf() for i in x_values]
+                ausfall_wartung_pneuamtik_values = [2000 * anzahl_anlage * ausfalls_wartung_pneumatik(i).evalf() for i in x_values]
+
+                print(ausfall_wartung_pneuamtik_values)
 
                 # Erstellen des Gesamtgraphen
-                gesamt_graph_pneumatik = [anschaffungskosten_pneumatik + routine + energie + ausfall for routine, energie, ausfall in zip(routine_wartungskosten_values, energiekosten_values, ausfall_wartung_pneuamtik_values)]
+                gesamt_graph_pneumatik = [anschaffungskosten_pneumatik + routine + energie + ausfall for routine, energie, ausfall in zip(pneumatik_routine_wartungskosten_values, pneumatik_energiekosten_values, ausfall_wartung_pneuamtik_values)]
 
                 # Berechnung und Hinzufügen der Graphen
                 subplot1_pneumatik = figure_pneumatik.add_subplot(2, 2, 1)
