@@ -28,6 +28,19 @@ class FullScreenApp:
 
         self.component_data = ["Gurtumsetzer", "Staurollenförderer"]
 
+        # Standardwerte für Optionen
+        self.standardwert_wirkungsgrad_elektrisch = 0.95
+        self.standardwert_wirkungsgrad_pneumatisch = 0.27
+        self.standardwert_strompreis = 0.21
+        self.standardwert_ueberschneidungsfaktor = 0.6
+
+        # Globale Variablen für Optionen
+        self.strompreis_entry = tk.DoubleVar(value=self.standardwert_strompreis)
+        self.wirkungsgrad_elektrisch_entry = tk.DoubleVar(value=self.standardwert_wirkungsgrad_elektrisch)
+        self.wirkungsgrad_pneumatisch_entry = tk.DoubleVar(value=self.standardwert_wirkungsgrad_pneumatisch)
+        self.ueberschneidungsfaktor_entry = tk.DoubleVar(value=self.standardwert_ueberschneidungsfaktor)
+
+
         self.selected_component = None
         self.manual_data = {
             "Schichtmodell": tk.StringVar(value=""),
@@ -35,9 +48,9 @@ class FullScreenApp:
             "Durchsatz": tk.DoubleVar(value=""),
             "Masse": tk.StringVar(value=""),
             "Nutzungsdauer": tk.IntVar(value=""),
-            "Wartungskosten": tk.DoubleVar(value=""), 
-            "Energiekosten": tk.DoubleVar(value=""),  
-            "Anschaffungskosten": tk.DoubleVar(value=""),          
+            "Wartungskosten": tk.StringVar(value=""), 
+            "Energiekosten": tk.StringVar(value=""),  
+            "Anschaffungskosten": tk.StringVar(value=""),          
             "BerechnungStarten": tk.StringVar(value="Ja")
         }
 
@@ -54,6 +67,40 @@ class FullScreenApp:
         ttk.Button(self.root, text="Begin Selection", command=self.modify_data).pack(pady=10)
 
         ttk.Button(menu_frame, text="Options", command=self.open_options_window).pack(side="left", padx=10)
+
+    
+    # Options Window
+    def open_options_window(self):
+        options_window = tk.Toplevel(self.root)
+        options_window.geometry("250x400")
+        options_window.title("Options")
+
+        ttk.Label(options_window, text="Wirkungsgrad elektrisch:").pack(pady=10)
+        wirkungsgrad_elektrisch_entry = ttk.Entry(options_window, textvariable=self.wirkungsgrad_elektrisch_entry)
+        wirkungsgrad_elektrisch_entry.pack(pady=5)
+
+        ttk.Label(options_window, text="Wirkungsgrad pneumatisch:").pack(pady=10)
+        wirkungsgrad_pneumatisch_entry = ttk.Entry(options_window, textvariable=self.wirkungsgrad_pneumatisch_entry)
+        wirkungsgrad_pneumatisch_entry.pack(pady=5)
+
+        ttk.Label(options_window, text="Strompreis:").pack(pady=10)
+        strompreis_entry = ttk.Entry(options_window, textvariable=self.strompreis_entry)
+        strompreis_entry.pack(pady=5)
+
+        ttk.Label(options_window, text="Überschneidungsfaktor:").pack(pady=10)
+        ueberschneidungsfaktor_entry = ttk.Entry(options_window, textvariable=self.ueberschneidungsfaktor_entry)
+        ueberschneidungsfaktor_entry.pack(pady=5)
+
+        # Bestätigen-Button hinzufügen
+        ttk.Button(options_window, text="Bestätigen", command=self.save_options).pack(pady=10)
+
+    def save_options(self):
+        # Werte speichern
+        self.standardwert_wirkungsgrad_elektrisch = self.wirkungsgrad_elektrisch_entry.get()
+        self.standardwert_wirkungsgrad_pneumatisch = self.wirkungsgrad_pneumatik_entry.get()
+        self.standardwert_strompreis = self.strompreis_entry.get()
+        self.standardwert_ueberschneidungsfaktor = self.ueberschneidungsfaktor_entry.get()
+
 
 
         # Modify Data input
@@ -90,17 +137,17 @@ class FullScreenApp:
 
         ttk.Label(modify_window, text="Bewertungssystem:", font=("Helvetica", 18)).pack(pady=20)
 
-            #ttk.Label(modify_window, text="Wartungskosten:").pack(pady=10)
-            #wartungskosten_dropdown = ttk.Combobox(modify_window, values=["vernachlässigbar", "unwichtig", "neutral", "wichtig", "sehr wichtig"], textvariable=self.manual_data["Wartungskosten"])
-            #wartungskosten_dropdown.pack(pady=5)
+        ttk.Label(modify_window, text="Wartungskosten:").pack(pady=10)
+        wartungskosten_dropdown = ttk.Combobox(modify_window, values=["vernachlässigbar", "unwichtig", "neutral", "wichtig", "sehr wichtig"], textvariable=self.manual_data["Wartungskosten"])
+        wartungskosten_dropdown.pack(pady=5)
 
-            #ttk.Label(modify_window, text="Energiekosten:").pack(pady=10)
-            #energiekosten_dropdown = ttk.Combobox(modify_window, values=["vernachlässigbar", "unwichtig", "neutral", "wichtig", "sehr wichtig"], textvariable=self.manual_data["Energiekosten"])
-            #energiekosten_dropdown.pack(pady=5)
+        ttk.Label(modify_window, text="Energiekosten:").pack(pady=10)
+        energiekosten_dropdown = ttk.Combobox(modify_window, values=["vernachlässigbar", "unwichtig", "neutral", "wichtig", "sehr wichtig"], textvariable=self.manual_data["Energiekosten"])
+        energiekosten_dropdown.pack(pady=5)
 
-            #ttk.Label(modify_window, text="Anschaffungskosten:").pack(pady=10)
-            #anschaffungskosten_dropdown = ttk.Combobox(modify_window, values=["vernachlässigbar", "unwichtig", "neutral", "wichtig", "sehr wichtig"], textvariable=self.manual_data["Anschaffungskosten"])
-            #anschaffungskosten_dropdown.pack(pady=5)
+        ttk.Label(modify_window, text="Anschaffungskosten:").pack(pady=10)
+        anschaffungskosten_dropdown = ttk.Combobox(modify_window, values=["vernachlässigbar", "unwichtig", "neutral", "wichtig", "sehr wichtig"], textvariable=self.manual_data["Anschaffungskosten"])
+        anschaffungskosten_dropdown.pack(pady=5)
 
         # Create buttons for calculations and data modification
         ttk.Button(modify_window, text="Calculate and Display", command=self.calculate_and_display).pack(pady=10)
@@ -120,12 +167,37 @@ class FullScreenApp:
     def calculate_and_display(self):
         if self.selected_component:
 
+            # Zugriff auf globale Variablen
+            strompreis = float(self.strompreis_entry.get())
+            wirkungsgrad_elektrisch = float(self.wirkungsgrad_elektrisch_entry.get())
+            wirkungsgrad_pneumatik = float(self.wirkungsgrad_pneumatisch_entry.get())
+            ueberschneidungsfaktor = float(self.ueberschneidungsfaktor_entry.get())
 
-            # Nur Vorübergehend:
-            strompreis_entry = 0.41
-            wirkungsgrad_elektrisch_entry = 0.95
-            wirkungsgrad_pneumatik_entry = 0.27
-            überschneidungsfaktor = 0.6
+
+
+            # Änderungen für die Wartungskosten-Combobox
+            wartungskosten_auswahl = self.manual_data["Wartungskosten"].get()
+            wartungskosten_optionen = ["vernachlässigbar", "unwichtig", "neutral", "wichtig", "sehr wichtig"]
+
+            # Überprüfen Sie, ob die ausgewählte Option in den Optionen enthalten ist
+            if wartungskosten_auswahl in wartungskosten_optionen:
+                wartungskosten = wartungskosten_optionen.index(wartungskosten_auswahl)
+            else:
+                # Handhaben Sie den Fall, wenn die ausgewählte Option nicht gefunden wird
+                wartungskosten = 0  # oder einen anderen Standardwert setzen
+
+            # Änderungen für die Energiekosten-Combobox
+            energiekosten_auswahl = self.manual_data["Energiekosten"].get()
+            energiekosten_optionen = ["vernachlässigbar", "unwichtig", "neutral", "wichtig", "sehr wichtig"]
+            energiekosten = energiekosten_optionen.index(energiekosten_auswahl)
+
+            # Änderungen für die Anschaffungskosten-Combobox
+            anschaffungskosten_auswahl = self.manual_data["Anschaffungskosten"].get()
+            anschaffungskosten_optionen = ["vernachlässigbar", "unwichtig", "neutral", "wichtig", "sehr wichtig"]
+            anschaffungskosten = anschaffungskosten_optionen.index(anschaffungskosten_auswahl)
+
+
+
 
             # Perform calculations using manual data
             schichtmodell = self.manual_data["Schichtmodell"].get()
@@ -133,9 +205,9 @@ class FullScreenApp:
             nutzungsdauer = self.manual_data["Nutzungsdauer"].get()
             masse = self.manual_data["Masse"].get()
             durchsatz = self.manual_data["Durchsatz"].get()
-            #wartungskosten = self.manual_data["Wartungskosten"].get()
-            #energiekosten = self.manual_data["Energiekosten"].get()
-            #-anschaffungskosten = self.manual_data["Anschaffungskosten"].get()
+            wartungskosten_value = self.manual_data["Wartungskosten"].get()
+            energiekosten = self.manual_data["Energiekosten"].get()
+            anschaffungskosten = self.manual_data["Anschaffungskosten"].get()
 
             weg = 0.1
 
@@ -165,40 +237,41 @@ class FullScreenApp:
                 max_masse=50
 
             # Auswärtung Bewertung Wartungskosten
-            #if wartungskosten=="vernachlässigbar":
-            #    beww = 0
-            #elif wartungskosten=="unwichtig":
-            #    beww = 1
-            #elif wartungskosten=="neutral":
-            #    beww = 2
-            #elif wartungskosten=="wichtig":
-            #    beww = 3
-            #elif wartungskosten=="sehr wichtig":
-            #    beww = 4
-
+            if wartungskosten_value=="vernachlässigbar":
+                beww = 0
+            elif wartungskosten_value=="unwichtig":
+                beww = 0.5
+            elif wartungskosten_value=="neutral":
+                beww = 1
+            elif wartungskosten_value=="wichtig":
+                beww = 1.5
+            elif wartungskosten_value=="sehr wichtig":
+                beww = 2
+            
+            print(beww)
             # Auswärtung Bewertung Energiekosten
-            #if energiekosten=="vernachlässigbar":
-            #    bewe = 1
-            #elif energiekosten=="unwichtig":
-            #    bewe = 1
-            #elif energiekosten=="neutral":
-            #    bewe = 1
-            #elif energiekosten=="wichtig":
-            #    bewe = 1
-            #elif energiekosten=="sehr wichtig":
-            #    bewe = 2
+            if energiekosten=="vernachlässigbar":
+                bewe = 0
+            elif energiekosten=="unwichtig":
+                bewe = 0.5
+            elif energiekosten=="neutral":
+                bewe = 1
+            elif energiekosten=="wichtig":
+                bewe = 1.5
+            elif energiekosten=="sehr wichtig":
+                bewe = 2
 
             # Auswärtung Bewertung Anschaffungskosten
-            #if anschaffungskosten=="vernachlässigbar":
-            #    bewa = 1
-            #elif anschaffungskosten=="unwichtig":
-            #    bewa = 1
-            #elif anschaffungskosten=="neutral":
-            #    bewa = 1
-            #elif anschaffungskosten=="wichtig":
-            #    bewa = 1
-            #elif anschaffungskosten=="sehr wichtig":
-            #    bewa = 2
+            if anschaffungskosten=="vernachlässigbar":
+                bewa = 0
+            elif anschaffungskosten=="unwichtig":
+                bewa = 0.5
+            elif anschaffungskosten=="neutral":
+                bewa = 1
+            elif anschaffungskosten=="wichtig":
+                bewa = 1.5
+            elif anschaffungskosten=="sehr wichtig":
+                bewa = 2
             
             # Angaben Elektrik          
             anschaffungskosten_elektrik_preis = 3000
@@ -221,7 +294,7 @@ class FullScreenApp:
             routine_wartung_kompressor_kosten = 500
             routine_wartung_zylinder_kosten = 250
             vstrom_zylinder = 0.205
-            ges_vstrom_zylinder = vstrom_zylinder * anzahl_anlage * überschneidungsfaktor / wirkungsgrad_pneumatik_entry
+            ges_vstrom_zylinder = vstrom_zylinder * anzahl_anlage * ueberschneidungsfaktor / wirkungsgrad_pneumatik
 
 
             # Berechnung der Leistung anhand der Kompressoren
@@ -248,12 +321,12 @@ class FullScreenApp:
 
 
             # Anschaffungskosten Berechnung
-            anschaffungskosten_elektrik = anschaffungskosten_elektrik_preis * anzahl_anlage #* bewa
-            anschaffungskosten_pneumatik = (anschaffungskosten_pneumatik_preis * anzahl_anlage + anschaffungskosten_kompressor_preis) #* bewa
+            anschaffungskosten_elektrik = anschaffungskosten_elektrik_preis * anzahl_anlage * bewa
+            anschaffungskosten_pneumatik = (anschaffungskosten_pneumatik_preis * anzahl_anlage + anschaffungskosten_kompressor_preis) * bewa
 
             # Energiekosten Berechnung
-            energiekosten_elektrik = leistung_elektrik * stunden_pro_woche * 52 * nutzungsdauer * anzahl_anlage * strompreis_entry * wirkungsgrad_elektrisch_entry #* bewe
-            energiekosten_pneumatik = leistung_pneumatik * stunden_pro_woche * 52 *  nutzungsdauer * strompreis_entry #* bewe
+            energiekosten_elektrik = leistung_elektrik * stunden_pro_woche * 52 * nutzungsdauer * anzahl_anlage * strompreis * wirkungsgrad_elektrisch * bewe
+            energiekosten_pneumatik = leistung_pneumatik * stunden_pro_woche * 52 *  nutzungsdauer * strompreis * bewe
           
             # Wartungskosten Elektrik:                  
             # Definieren Sie Symbole
@@ -275,7 +348,7 @@ class FullScreenApp:
             integral_result = sp.integrate(ausfalls_wartung_motor(x), (x, 0, nutzungsdauer)).evalf()
 
             # Multiplizieren Sie das Integralergebnis mit den Routine-Wartungskosten
-            wartungskosten_elektrik = (routine_wartung_motor_kosten * nutzungsdauer * anzahl_anlage + integral_result * 2000 * anzahl_anlage) #* beww
+            wartungskosten_elektrik = (routine_wartung_motor_kosten * nutzungsdauer * anzahl_anlage + integral_result * 2000 * anzahl_anlage) * beww
             routine_wartungskosten_elektrik = anzahl_anlage * routine_wartung_motor_kosten * nutzungsdauer
             
 
@@ -299,7 +372,7 @@ class FullScreenApp:
             integral_result = sp.integrate(ausfalls_wartung_pneumatik(x), (x, 0, nutzungsdauer)).evalf()
 
             # Multiplizieren Sie das Integralergebnis mit den Routine-Wartungskosten
-            wartungskosten_pneumatik = ((routine_wartung_kompressor_kosten  + routine_wartung_zylinder_kosten * anzahl_anlage) * nutzungsdauer + integral_result * 2000 * anzahl_anlage + integral_result * 10000) #* beww
+            wartungskosten_pneumatik = ((routine_wartung_kompressor_kosten  + routine_wartung_zylinder_kosten * anzahl_anlage) * nutzungsdauer + integral_result * 2000 * anzahl_anlage + integral_result * 10000) * beww
             routine_wartungskosten_pneumatik = (anzahl_anlage * routine_wartung_zylinder_kosten + routine_wartung_kompressor_kosten) * nutzungsdauer
 
             gesamtkosten_elektrik = anschaffungskosten_elektrik + wartungskosten_elektrik + energiekosten_elektrik
@@ -349,10 +422,10 @@ class FullScreenApp:
                 nutzungsdauer = int(self.manual_data["Nutzungsdauer"].get())
 
                 # 1. routine_wartungskosten_elektrik
-                routine_wartungskosten_elektrik = routine_wartung_motor_kosten * anzahl_anlage * x #* beww
+                routine_wartungskosten_elektrik = routine_wartung_motor_kosten * anzahl_anlage * x * beww
 
                 # 2. energiekosten_elektrik
-                energiekosten_elektrik = leistung_elektrik * stunden_pro_woche * 52 * x * anzahl_anlage * strompreis_entry * wirkungsgrad_elektrisch_entry #* bewe
+                energiekosten_elektrik = leistung_elektrik * stunden_pro_woche * 52 * x * anzahl_anlage * strompreis * wirkungsgrad_elektrisch * bewe
 
                 # 3. ausfalls_wartung_motor
                 x = sp.symbols('x')
@@ -445,7 +518,7 @@ class FullScreenApp:
                 routine_wartungskosten_pneumatik = (routine_wartung_zylinder_kosten * anzahl_anlage + routine_wartung_kompressor_kosten) * x 
 
                 # 2. energiekosten_pneumatik
-                energiekosten_pneumatik = leistung_pneumatik * stunden_pro_woche * 52 *  x * strompreis_entry 
+                energiekosten_pneumatik = leistung_pneumatik * stunden_pro_woche * 52 *  x * strompreis
 
                 # 3. ausfalls_wartung_pneumatik
                 def exponential_function1(x):
@@ -561,28 +634,6 @@ class FullScreenApp:
         figure_canvas.get_tk_widget().destroy()
         
         return figure_image
-    
-
-
-
-        # Options Fenster
-    def open_options_window(self):
-        options_window = tk.Toplevel(self.root)
-        options_window.geometry("250x300")
-        options_window.title("Options")
-
-        ttk.Label(options_window, text="Wirkungsgrad elektrisch:").pack(pady=10)
-        wirkungsgrad_elektrisch_entry = ttk.Entry(options_window)
-        wirkungsgrad_elektrisch_entry.pack(pady=5)
-
-        ttk.Label(options_window, text="Wirkungsgrad pneumatisch:").pack(pady=10)
-        wirkungsgrad_pneumatisch_entry = ttk.Entry(options_window)
-        wirkungsgrad_pneumatisch_entry.pack(pady=5)
-
-        ttk.Label(options_window, text="Strompreis:").pack(pady=10)
-        strompreis_entry = ttk.Entry(options_window)
-        strompreis_entry.pack(pady=5)
-
 
 if __name__ == "__main__":
     root = tk.Tk()

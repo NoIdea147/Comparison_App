@@ -1,26 +1,43 @@
-import matplotlib.pyplot as plt
-import numpy as np
+import tkinter as tk
+from tkinter import ttk
 
-# Beispiel-Daten
-x_data = np.linspace(0, 10, 100)  # Erzeuge 100 Werte zwischen 0 und 10
-y_data = np.sin(x_data)
+class MainWindow:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Tkinter Window")
 
-# Plot erstellen
-plt.plot(x_data, y_data, label='Sinus-Funktion')
+        # Manuelle Daten
+        self.manual_data = {
+            "Wartungskosten": tk.StringVar(value="vernachlässigbar")
+        }
 
-# Achsenskalierung und Tick-Markierungen festlegen
-plt.xlim(0, 10)
-plt.ylim(-1, 1)
-plt.xticks(np.arange(0, 11, 1))  # Benutzerdefinierte X-Tick-Markierungen von 0 bis 10 in Schritten von 1
-plt.yticks(np.arange(-1, 1.1, 0.2))  # Benutzerdefinierte Y-Tick-Markierungen von -1 bis 1 in Schritten von 0.2
+        self.create_widgets()
 
-# Beschriftungen hinzufügen
-plt.xlabel('X-Achse')
-plt.ylabel('Y-Achse')
-plt.title('Fein skalierte Achsen mit benutzerdefinierten Tick-Markierungen')
+    def create_widgets(self):
+        ttk.Label(self.root, text="Wartungskosten:").pack(pady=10)
+        wartungskosten_dropdown = ttk.Combobox(self.root, values=["vernachlässigbar", "unwichtig", "neutral", "wichtig", "sehr wichtig"], textvariable=self.manual_data["Wartungskosten"])
+        wartungskosten_dropdown.pack(pady=5)
 
-# Legende anzeigen
-plt.legend()
+        ttk.Button(self.root, text="Show Value", command=self.show_value).pack(pady=10)
 
-# Diagramm anzeigen
-plt.show()
+    def show_value(self):
+        wartungskosten_value = self.manual_data["Wartungskosten"].get()
+
+        # Auswärtung Bewertung Wartungskosten
+        if wartungskosten_value=="vernachlässigbar":
+            beww = 0
+        elif wartungskosten_value=="unwichtig":
+            beww = 1
+        elif wartungskosten_value=="neutral":
+            beww = 2
+        elif wartungskosten_value=="wichtig":
+            beww = 3
+        elif wartungskosten_value=="sehr wichtig":
+            beww = 4
+        
+        print(beww)
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = MainWindow(root)
+    root.mainloop()
