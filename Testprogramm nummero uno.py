@@ -58,8 +58,7 @@ class FullScreenApp:
 
         # Modify Data input
     def modify_data(self):
-        self.selevted_component = self.component_dropdown.get()
-        data = self.component_data.get(self.selected_component, {})
+        self.selected_component = self.component_dropdown.get()
         
         # Create a new window to modify manual data
         modify_window = tk.Toplevel(self.root)
@@ -104,12 +103,12 @@ class FullScreenApp:
             #anschaffungskosten_dropdown.pack(pady=5)
 
         # Create buttons for calculations and data modification
-        ttk.Button(modify_window, text="Calculate", command=self.calculate_and_display).pack(pady=10)
+        ttk.Button(modify_window, text="Calculate and Display", command=self.calculate_and_display).pack(pady=10)
 
 
     def change_data(self):
         # Implement functionality to change manual data
-        # Placeholder message for demonstration purposes
+        # Place holder message for demonstration purposes
         messagebox.showinfo("Confirm Data", "Data confirmed successfully.")
 
         self.calculate_and_display()
@@ -120,7 +119,7 @@ class FullScreenApp:
         # Berechnungen
     def calculate_and_display(self):
         if self.selected_component:
-            data = self.component_data[self.selected_component]
+
 
             # Nur Vorübergehend:
             strompreis_entry = 0.41
@@ -508,14 +507,15 @@ class FullScreenApp:
 
                 # Frame für Datenausgabe im Ergebnisfenster
                 frame_datenausgabe = ttk.Frame(self.results_window)
-                frame_datenausgabe.place(x=662.5, y=0)
+                frame_datenausgabe.place(x=665, y=0)
 
-                ttk.Label(frame_datenausgabe, text="Datenausgabe", font=("Helvetica", 20, "bold")).pack(side=tk.TOP, pady=5)
-                ttk.Label(frame_datenausgabe, text=f"Schichtmodell: {schichtmodell}", font=("Helvetica", 12)).pack(side=tk.TOP, pady=5)
-                ttk.Label(frame_datenausgabe, text=f"Nutzungsdauer: {nutzungsdauer} Jahre", font=("Helvetica", 12)).pack(side=tk.TOP, pady=5)
-                ttk.Label(frame_datenausgabe, text=f"Größe der Anlage: {anzahl_anlage} Stück", font=("Helvetica", 12)).pack(side=tk.TOP, pady=5)
-                ttk.Button(frame_datenausgabe, text="Hauptmenü", command=self.back_to_main_menu).pack(side=tk.TOP, pady=10)
-                ttk.Button(frame_datenausgabe, text="Modify manual data", command=self.modify_data).pack(side=tk.TOP, pady=5)
+                ttk.Label(frame_datenausgabe, text="Datenausgabe", font=("Helvetica", 20, "bold")).pack(side=tk.TOP, pady=3)
+                ttk.Label(frame_datenausgabe, text=f"Bauteil: {self.selected_component}", font=("Helvetica", 12)).pack(side=tk.TOP, pady=3)
+                ttk.Label(frame_datenausgabe, text=f"Schichtmodell: {schichtmodell}", font=("Helvetica", 12)).pack(side=tk.TOP, pady=4)
+                ttk.Label(frame_datenausgabe, text=f"Nutzungsdauer: {nutzungsdauer} Jahre", font=("Helvetica", 12)).pack(side=tk.TOP, pady=4)
+                ttk.Label(frame_datenausgabe, text=f"Größe der Anlage: {anzahl_anlage} Stück", font=("Helvetica", 12)).pack(side=tk.TOP, pady=4)
+                ttk.Button(frame_datenausgabe, text="Hauptmenü", command=self.back_to_main_menu).pack(side=tk.TOP, pady=4)
+                ttk.Button(frame_datenausgabe, text="Modify manual data", command=self.modify_data).pack(side=tk.TOP, pady=4)
              
 
 
