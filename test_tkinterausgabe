@@ -1,120 +1,26 @@
-import tkinter as tk
-from tkinter import ttk
-from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import numpy as np
-import sympy as sp
 import matplotlib.pyplot as plt
+import numpy as np
 
-class CostAnalysisApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Cost Analysis")
-        self.root.geometry("1929x1080")
+# Beispiel-Daten
+x_data = np.linspace(0, 10, 100)  # Erzeuge 100 Werte zwischen 0 und 10
+y_data = np.sin(x_data)
 
-        # Dummy Daten
-        self.wartungskosten_elektrik = 1234.5678
-        self.energiekosten_elektrik = 5678.1234
-        self.anschaffungskosten_elektrik = 9876.5432
-        self.gesamtkosten_elektrik = 7890.1234
+# Plot erstellen
+plt.plot(x_data, y_data, label='Sinus-Funktion')
 
-        self.wartungskosten_pneumatik = 4321.8765
-        self.energiekosten_pneumatik = 8765.4321
-        self.anschaffungskosten_pneumatik = 5678.9876
-        self.gesamtkosten_pneumatik = 9012.3456
+# Achsenskalierung und Tick-Markierungen festlegen
+plt.xlim(0, 10)
+plt.ylim(-1, 1)
+plt.xticks(np.arange(0, 11, 1))  # Benutzerdefinierte X-Tick-Markierungen von 0 bis 10 in Schritten von 1
+plt.yticks(np.arange(-1, 1.1, 0.2))  # Benutzerdefinierte Y-Tick-Markierungen von -1 bis 1 in Schritten von 0.2
 
-        self.setup_ui()
+# Beschriftungen hinzufügen
+plt.xlabel('X-Achse')
+plt.ylabel('Y-Achse')
+plt.title('Fein skalierte Achsen mit benutzerdefinierten Tick-Markierungen')
 
-    def setup_ui(self):
-        frame_elektrik = ttk.Frame(self.root)
-        frame_elektrik.pack(side=tk.LEFT, anchor=tk.NW, padx=10, pady=10)
+# Legende anzeigen
+plt.legend()
 
-        frame_pneumatik = ttk.Frame(self.root)
-        frame_pneumatik.pack(side=tk.RIGHT, anchor=tk.NE, padx=10, pady=10)
-
-        
-
-        ttk.Label(frame_elektrik, text="Elektrisch", font=("Helvetica", 20, "bold")).pack(side=tk.TOP, pady=10)
-
-        ttk.Label(frame_elektrik, text=f"Wartungskosten Elektrik: {round(self.wartungskosten_elektrik, 2)}", font=("Helvetica", 16)).pack(pady=5)
-        ttk.Label(frame_elektrik, text=f"Energiekosten Elektrik: {round(self.energiekosten_elektrik, 2)}", font=("Helvetica", 16)).pack(pady=5)
-        ttk.Label(frame_elektrik, text=f"Installationskosten Elektrik: {round(self.anschaffungskosten_elektrik, 2)}", font=("Helvetica", 16)).pack(pady=5)
-        ttk.Label(frame_elektrik, text=f"Gesamtkosten Elektrik: {round(self.gesamtkosten_elektrik, 2)}", font=("Helvetica", 16)).pack(pady=5)
-
-        # Frame für Graphen Elektrik
-        frame_graph_elektrik = ttk.Frame(frame_elektrik)
-        frame_graph_elektrik.pack(side=tk.BOTTOM, anchor=tk.S, pady=10)
-
-        # Hier vier Testgraphen für Elektrik hinzufügen
-        figure_elektrik = Figure(figsize=(7.2, 5.5), tight_layout=True)
-
-        functions = [
-            {"func": np.sin, "title": "Sinus", "x_label": "X-Werte", "y_label": "Y-Werte"},
-            {"func": np.cos, "title": "Cosinus", "x_label": "X-Achse", "y_label": "Y-Achse"},
-            {"func": lambda x: x**2, "title": "Quadratische Funktion", "x_label": "X-Achse", "y_label": "Y-Achse"},
-            {"func": np.exp, "title": "Exponentialfunktion", "x_label": "X-Achse", "y_label": "Y-Achse"}
-        ]
-
-        for i, config in enumerate(functions, start=1):
-            subplot_elektrik = figure_elektrik.add_subplot(2, 2, i)
-            x_values = np.linspace(0, 4, 100)
-            y_values = config["func"](x_values)
-            subplot_elektrik.plot(x_values, y_values, color='orange')  
-            subplot_elektrik.set_xlabel(config["x_label"])
-            subplot_elektrik.set_ylabel(config["y_label"])
-            subplot_elektrik.set_title(config["title"])
-
-        canvas_elektrik = FigureCanvasTkAgg(figure_elektrik, master=frame_graph_elektrik)
-        canvas_elektrik.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
-
-
-
-        ttk.Label(frame_pneumatik, text="Pneumatisch", font=("Helvetica", 20, "bold")).pack(side=tk.TOP, pady=10)
-
-        ttk.Label(frame_pneumatik, text=f"Wartungskosten Pneumatik: {round(self.wartungskosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(pady=5)
-        ttk.Label(frame_pneumatik, text=f"Energiekosten Pneumatik: {round(self.energiekosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(pady=5)
-        ttk.Label(frame_pneumatik, text=f"Installationskosten Pneumatik: {round(self.anschaffungskosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(pady=5)
-        ttk.Label(frame_pneumatik, text=f"Gesamtkosten Pneumatik: {round(self.gesamtkosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(pady=5)
-
-        # Frame für Graphen Pneumatik
-        frame_graph_pneumatik = ttk.Frame(frame_pneumatik)
-        frame_graph_pneumatik.pack(side=tk.BOTTOM, anchor=tk.S, pady=10)
-        # Hier vier Testgraphen für Pneumatik hinzufügen
-        figure_pneumatik = Figure(figsize=(7.2, 5.5), tight_layout=True)
-
-        functions = [
-            {"func": np.sin, "title": "Routine - Wartungskosten", "x_label": "X-Werte", "y_label": "Y-Werte"},
-            {"func": np.cos, "title": "Cosinus", "x_label": "X-Achse", "y_label": "Y-Achse"},
-            {"func": lambda x: x**2, "title": "Quadratische Funktion", "x_label": "X-Achse", "y_label": "Y-Achse"},
-            {"func": np.exp, "title": "Exponentialfunktion", "x_label": "X-Achse", "y_label": "Y-Achse"}
-        ]
-
-        for i, config in enumerate(functions, start=1):
-            subplot_pneumatik = figure_pneumatik.add_subplot(2, 2, i)
-            x_values = np.linspace(0, 4, 100)
-            y_values = config["func"](x_values)
-            subplot_pneumatik.plot(x_values, y_values, color='blue')  
-            subplot_pneumatik.set_xlabel(config["x_label"])
-            subplot_pneumatik.set_ylabel(config["y_label"])
-            subplot_pneumatik.set_title(config["title"])
-
-        canvas_pneumatik = FigureCanvasTkAgg(figure_pneumatik, master=frame_graph_pneumatik)
-        canvas_pneumatik.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
-
-        frame_datenausgabe = ttk.Frame(self.root)
-        frame_datenausgabe.place(x=675, y=0)  # Hier kannst du die genauen Koordinaten festlegen
-
-        ttk.Label(frame_datenausgabe, text="Datenausgabe", font=("Helvetica", 20, "bold")).pack(side=tk.TOP, pady=10)
-        ttk.Button(frame_datenausgabe, text="Berechnung starten", command=self.start_berechnung).pack(side=tk.TOP, pady=10)
-
-    def start_berechnung(self):
-        # Hier können die Berechnungen und Datenausgabe-Logik hinzugefügt werden
-        pass
-
-    
-
-
-if __name__ == "__main__":
-    root = tk.Tk()
-    app = CostAnalysisApp(root)
-    root.mainloop()
+# Diagramm anzeigen
+plt.show()
