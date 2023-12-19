@@ -1,49 +1,53 @@
 import mysql.connector
 
-# Erstellen Sie eine Verbindung zur Datenbank
-# Ersetzen Sie 'hostname', 'user', 'password' und 'database' mit Ihren eigenen Daten
-conn = mysql.connector.connect(
-    host='localhost',
-    port = '3306',
-    user='dev_user',
-    password='^JB~_seip6Y%iuLV]V_.xmQn{nKA$Z',
-    database='sys'
-)
+# Verbindungsinformationen für die Datenbanken
+db_config = {
+    'host': 'localhost',
+    'user': 'dev_user',
+    'password': '^JB~_seip6Y%iuLV]V_.xmQn{nKA$Z'
+}
 
-# Erstellen Sie ein Cursor-Objekt
-cursor = conn.cursor()
-
-# SQL-Abfrage, um alle Zeilen aus der Tabelle Bauteile zu erhalten
-query = "SELECT * FROM Bauteile"
-
-try:
-    # Führen Sie die Abfrage aus
+# Funktion, um Daten aus einer bestimmten Datenbank und Tabelle zu holen
+def fetch_data(database_name, table_name):
+    connection = mysql.connector.connect(database=database_name, **db_config)
+    cursor = connection.cursor()
+    query = f"SELECT * FROM {table_name}"
     cursor.execute(query)
+    result = cursor.fetchall()
+    cursor.close()
+    connection.close()
+    return result
 
-    # Holen Sie alle Zeilen
-    rows = cursor.fetchall()
+# Daten aus den spezifischen Tabellen und Spalten holen
+elektrik = fetch_data('elektrik', 'elektrik')
+zylinder = fetch_data('zylinder', 'zylinder')
+kompressor = fetch_data('kompressor', 'kompressor')
 
-    # Dictionary, um die Werte zu speichern
-    bauteile_dict = {}
+# Variablen für jede Spalte aus jeder Tabelle erstellen
+# Beispiel für Tabelle1 aus Datenbank1 mit Spalten 'Spalte1', 'Spalte2', 'Spalte3'
+for row in elektrik:
+    Geschwindigkeit = row[0]
+    Beschleunigug = row[1]
+    # Verwenden Sie die Variablen wie benötigt
+   #print("DB Elektrik") #Showcase
+    print(Geschwindigkeit, Beschleunigug)
 
-    # Schleife durch die Ergebnisse und speichern Sie die Werte im Dictionary
-    for i, row in enumerate(rows, start=1):
-        bauteile_dict[f'bauteil{i}_luftverbrauch'] = row[1]
-        bauteile_dict[f'bauteil{i}_hub'] = row[2]
-        bauteile_dict[f'bauteil{i}_zykluszeit'] = row[3]
-        bauteile_dict[f'bauteil{i}_positionierungszeit'] = row[4]
-        bauteile_dict[f'bauteil{i}_durchschnittliche_wartungskosten'] = row[5]
 
-    # Beispiel, um zu zeigen, wie auf die Werte zugegriffen wird
-    for key, value in bauteile_dict.items():
-        print(f'{key}: {value}')
+for row in zylinder:
+    Hub = row[0]
+    Kolbendurchmesser = row[1]
+    Luftverbrauch = row[2]
+    # Verwenden Sie die Variablen wie benötigt
+    #print("DB Zylinder") #Showcase
+    print(Hub, Kolbendurchmesser, Luftverbrauch)
 
-except mysql.connector.Error as err:
-    print(f"Fehler: {err}")
 
-finally:
-    # Schließen Sie die Verbindung
-    if conn.is_connected():
-        cursor.close()
-        conn.close()
-        print("MySQL Verbindung ist geschlossen")
+for row in kompressor:
+    Druck = row[1]
+    Volumenstrom = row[2]
+    Leistung = row[3]
+    # Verwenden Sie die Variablen wie benötigt
+    #print("DB Zylinder") #Showcase
+    print(Druck, Volumenstrom, Leistung)
+    
+
