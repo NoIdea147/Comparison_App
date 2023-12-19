@@ -1,3 +1,4 @@
+# Bibiliotheken importieren
 import tkinter as tk
 from tkinter import ttk, messagebox
 from matplotlib.figure import Figure
@@ -13,7 +14,12 @@ import matplotlib.pyplot as plt
 import sympy as sp
 import math
 
+
+# Programm als Klasse erstellen
 class FullScreenApp:
+
+
+# Datentyp, verfügbare Bauteile auswählen
     def __init__(self, root):
         self.root = root
         self.root.title("Main menu")
@@ -40,7 +46,7 @@ class FullScreenApp:
         self.wirkungsgrad_pneumatisch_entry = tk.DoubleVar(value=self.standardwert_wirkungsgrad_pneumatisch)
         self.ueberschneidungsfaktor_entry = tk.DoubleVar(value=self.standardwert_ueberschneidungsfaktor)
 
-
+        # Datentyp für manuelle Daten
         self.selected_component = None
         self.manual_data = {
             "Schichtmodell": tk.StringVar(value=""),
@@ -56,6 +62,8 @@ class FullScreenApp:
 
         self.create_menu()
 
+
+# Hauptmenü erstellen
     def create_menu(self):
         menu_frame = ttk.Frame(self.root)
         menu_frame.pack(side="top", fill="x")
@@ -68,10 +76,10 @@ class FullScreenApp:
 
         ttk.Button(self.root, text="Begin Selection", command=self.modify_data).pack(pady=10)
 
-        ttk.Button(menu_frame, text="Options", command=self.open_options_window).pack(side="left", padx=10)
+        ttk.Button(menu_frame, text="Options", command=self.open_options_window).pack(side="left", padx=10)   
 
-    
-    # Options Window
+
+# Optionsfesnter erstellen
     def open_options_window(self):
         options_window = tk.Toplevel(self.root)
         options_window.geometry("250x400")
@@ -96,27 +104,32 @@ class FullScreenApp:
         # Bestätigen-Button hinzufügen
         ttk.Button(options_window, text="Bestätigen", command=self.save_options).pack(pady=10)
 
+
+# Speichern der Aenderung von Optionen
     def save_options(self):
         # Werte speichern
         self.standardwert_wirkungsgrad_elektrisch = self.wirkungsgrad_elektrisch_entry.get()
-        self.standardwert_wirkungsgrad_pneumatisch = self.wirkungsgrad_pneumatik_entry.get()
+        self.standardwert_wirkungsgrad_pneumatisch = self.wirkungsgrad_pneumatisch_entry.get()
         self.standardwert_strompreis = self.strompreis_entry.get()
         self.standardwert_ueberschneidungsfaktor = self.ueberschneidungsfaktor_entry.get()
 
 
 
         # Modify Data input
+
+
+# Manuelle Dateneingabe    
     def modify_data(self):
         self.selected_component = self.component_dropdown.get()
         
-        # Create a new window to modify manual data
+        # Fenster erstellen
         modify_window = tk.Toplevel(self.root)
         modify_window.geometry("1920x1080")
         modify_window.title("Modify Data")
 
         ttk.Label(modify_window, text="Manual data input", font=("Helvetica", 24)).pack(pady=20)
 
-        # Create entry fields for manual data
+        # Felder für die Eingabe und Dropdown Menüs
         ttk.Label(modify_window, text="Schichtmodell:").pack(pady=10)
         schichtmodell_dropdown = ttk.Combobox(modify_window, values=["Zweischichtbetrieb", "Dreischichtbetrieb", "Dauerbetrieb"], textvariable=self.manual_data["Schichtmodell"])
         schichtmodell_dropdown.pack(pady=5)
@@ -155,10 +168,10 @@ class FullScreenApp:
         ttk.Button(modify_window, text="Calculate and Display", command=self.calculate_and_display).pack(pady=10)
 
 
+# Bestätigen der Daten
     def change_data(self):
-        # Implement functionality to change manual data
-        # Place holder message for demonstration purposes
-        messagebox.showinfo("Confirm Data", "Data confirmed successfully.")
+
+        messagebox.showinfo("Daten bestätigen", "Daten wurden erfolgreich bestätigt.")
 
         self.calculate_and_display()
 
@@ -166,6 +179,9 @@ class FullScreenApp:
 
 
         # Berechnungen
+
+
+# Berechnungen und Graphen Ausgabe
     def calculate_and_display(self):
         if self.selected_component:
 
@@ -176,32 +192,7 @@ class FullScreenApp:
             ueberschneidungsfaktor = float(self.ueberschneidungsfaktor_entry.get())
 
 
-
-            # Änderungen für die Wartungskosten-Combobox
-            wartungskosten_auswahl = self.manual_data["Wartungskosten"].get()
-            wartungskosten_optionen = ["vernachlässigbar", "unwichtig", "neutral", "wichtig", "sehr wichtig"]
-
-            # Überprüfen Sie, ob die ausgewählte Option in den Optionen enthalten ist
-            if wartungskosten_auswahl in wartungskosten_optionen:
-                wartungskosten = wartungskosten_optionen.index(wartungskosten_auswahl)
-            else:
-                # Handhaben Sie den Fall, wenn die ausgewählte Option nicht gefunden wird
-                wartungskosten = 0  # oder einen anderen Standardwert setzen
-
-            # Änderungen für die Energiekosten-Combobox
-            energiekosten_auswahl = self.manual_data["Energiekosten"].get()
-            energiekosten_optionen = ["vernachlässigbar", "unwichtig", "neutral", "wichtig", "sehr wichtig"]
-            energiekosten = energiekosten_optionen.index(energiekosten_auswahl)
-
-            # Änderungen für die Anschaffungskosten-Combobox
-            anschaffungskosten_auswahl = self.manual_data["Anschaffungskosten"].get()
-            anschaffungskosten_optionen = ["vernachlässigbar", "unwichtig", "neutral", "wichtig", "sehr wichtig"]
-            anschaffungskosten = anschaffungskosten_optionen.index(anschaffungskosten_auswahl)
-
-
-
-
-            # Perform calculations using manual data
+            # Die Manuellen Daten aufrufen
             schichtmodell = self.manual_data["Schichtmodell"].get()
             anlagen_groesse = self.manual_data["AnlagenGroesse"].get()
             nutzungsdauer = self.manual_data["Nutzungsdauer"].get()
@@ -210,7 +201,6 @@ class FullScreenApp:
             wartungskosten_value = self.manual_data["Wartungskosten"].get()
             energiekosten = self.manual_data["Energiekosten"].get()
             anschaffungskosten = self.manual_data["Anschaffungskosten"].get()
-
             weg = 0.1
 
 
@@ -283,28 +273,30 @@ class FullScreenApp:
             elif schichtmodell == "Dauerbetrieb":
                 wartungsfaktor = 1
             
+
             # Angaben Elektrik          
             anschaffungskosten_elektrik_preis = 3000
             routine_wartung_motor_kosten = 250
             max_leistung_eletrik = 0.35
             v_elektrisch = weg/0.2
+
             # Berechnung Motor
             leistung_elektrik_st = max_masse * 9.81 * v_elektrisch / 1000
             leistung_elektrik_b = max_leistung_eletrik - leistung_elektrik_st
             wurzel = leistung_elektrik_b * 1000 * 2 / max_masse
             square_root = np.sqrt(wurzel)
             zeit_b = 0.1 / square_root
+
             # Definition der Durchschnittlichen Leistung in einer Minute
             leistung_elektrik = (0.2 * durchsatz * leistung_elektrik_st + zeit_b * durchsatz * leistung_elektrik_b)/60
 
 
             # Angaben Pneumatik
-            anschaffungskosten_pneumatik_preis=1000
+            anschaffungskosten_pneumatik_preis  =1000
             routine_wartung_kompressor_kosten = 500
             routine_wartung_zylinder_kosten = 250
-            vstrom_zylinder = 0.205
+            vstrom_zylinder = 0.196
             ges_vstrom_zylinder = vstrom_zylinder * anzahl_anlage * ueberschneidungsfaktor / wirkungsgrad_pneumatik
-
 
             # Berechnung der Leistung anhand der Kompressoren
             leistung_kompressor_klein = 10
@@ -359,9 +351,9 @@ class FullScreenApp:
             # Berechnen Sie das bestimmte Integral von 0 bis 30
             integral_result = sp.integrate(ausfalls_wartung_motor(x), (x, 0, nutzungsdauer)).evalf()
 
-            # Multiplizieren Sie das Integralergebnis mit den Routine-Wartungskosten
+            # Ergebnisse
             wartungskosten_elektrik = (routine_wartung_motor_kosten * nutzungsdauer * anzahl_anlage + integral_result * 2000 * anzahl_anlage) * beww * wartungsfaktor
-            routine_wartungskosten_elektrik = anzahl_anlage * routine_wartung_motor_kosten * nutzungsdauer * wartungsfaktor
+            routine_wartungskosten_elektrik = anzahl_anlage * routine_wartung_motor_kosten * nutzungsdauer * wartungsfaktor * beww
             
 
             # Wartungskosten Pneumatik:
@@ -383,28 +375,26 @@ class FullScreenApp:
             # Berechnen Sie das bestimmte Integral von 0 bis 30
             integral_result = sp.integrate(ausfalls_wartung_pneumatik(x), (x, 0, nutzungsdauer)).evalf()
 
-            # Multiplizieren Sie das Integralergebnis mit den Routine-Wartungskosten
+            # Ergebnisse
             wartungskosten_pneumatik = ((routine_wartung_kompressor_kosten  + routine_wartung_zylinder_kosten * anzahl_anlage) * nutzungsdauer + integral_result * anschaffungskosten_pneumatik_preis * anzahl_anlage + integral_result * anschaffungskosten_kompressor_preis) * beww * wartungsfaktor
-            routine_wartungskosten_pneumatik = (anzahl_anlage * routine_wartung_zylinder_kosten + routine_wartung_kompressor_kosten) * nutzungsdauer * wartungsfaktor
+            routine_wartungskosten_pneumatik = (anzahl_anlage * routine_wartung_zylinder_kosten + routine_wartung_kompressor_kosten) * nutzungsdauer * wartungsfaktor * beww
 
+            # Berechnung Anschaffungskosten
             gesamtkosten_elektrik = anschaffungskosten_elektrik + wartungskosten_elektrik + energiekosten_elektrik
             gesamtkosten_pneumatik = anschaffungskosten_pneumatik + wartungskosten_pneumatik + energiekosten_pneumatik
           
 
         # Datenausgabe:
-            # Optionally check if the calculation should start
+            # Bestätigung das die Ausgabe starten sollte
             berechnung_starten = self.manual_data["BerechnungStarten"].get()
             if berechnung_starten == "Ja":
-                # Perform calculations based on manual data
-                # Replace with your actual calculations
 
-                # Display results in a new window
+                # Neues Fenster für Berechnungen und Graphen
                 self.results_window = tk.Toplevel(self.root)
                 self.results_window.geometry("1920x1080")
                 self.results_window.title("Cost Analysis Results")
-
-        
-                # Display cost values
+     
+                # Frame für Berechnungen Ausgabe
                 frame_elektrik = ttk.Frame(self.results_window)
                 frame_elektrik.pack(side=tk.LEFT, anchor=tk.NW, padx=10, pady=10)
 
@@ -438,7 +428,7 @@ class FullScreenApp:
                 routine_wartungskosten_elektrik = routine_wartung_motor_kosten * anzahl_anlage * x * beww * wartungsfaktor
 
                 # 2. energiekosten_elektrik
-                energiekosten_elektrik = leistung_elektrik * stunden_pro_woche * 52 * x * anzahl_anlage * strompreis * wirkungsgrad_elektrisch * bewe
+                energiekosten_elektrik = leistung_elektrik * stunden_pro_woche * 52 * x * anzahl_anlage * strompreis * bewe / wirkungsgrad_elektrisch 
 
                 # 3. ausfalls_wartung_motor
                 x = sp.symbols('x')
@@ -456,7 +446,7 @@ class FullScreenApp:
                     return sp.Piecewise((exponential_function1(x), condition), (exponential_function2(x), True))
 
                 # Berechnen Sie das bestimmte Integral von 0 bis 30
-                integral_values = [sp.integrate(wartungsfaktor * anzahl_anlage * anschaffungskosten_elektrik_preis * ausfalls_wartung_motor(x), (x, 0, i)).evalf() for i in range(nutzungsdauer + 1)]
+                integral_values = [sp.integrate(beww * wartungsfaktor * anzahl_anlage * anschaffungskosten_elektrik_preis * ausfalls_wartung_motor(x), (x, 0, i)).evalf() for i in range(nutzungsdauer + 1)]
                
 
                 # 4. gesamtkosten_elektrik
@@ -465,8 +455,6 @@ class FullScreenApp:
                 elektrik_routine_wartungskosten_values = [routine_wartungskosten_elektrik.subs(x, i).evalf() for i in x_values]
                 elektrik_energiekosten_values = [energiekosten_elektrik.subs(x, i).evalf() for i in x_values]
                 
-
-             
 
                 # Erstellen des Gesamtgraphen
                 gesamt_graph_elektrik = [anschaffungskosten_elektrik + routine + energie + ausfall for routine, energie, ausfall in zip(elektrik_routine_wartungskosten_values, elektrik_energiekosten_values, integral_values)]
@@ -488,7 +476,7 @@ class FullScreenApp:
                 subplot2_elektrik.set_ylabel("Kosten [€]")
                 
                 subplot3_elektrik = figure_elektrik.add_subplot(2, 2, 3)
-                subplot3_elektrik.plot([i for i in range(nutzungsdauer + 1)], [wartungsfaktor * anzahl_anlage * 2000 * ausfalls_wartung_motor(i) for i in range(nutzungsdauer + 1)], linestyle='-', color='orange')
+                subplot3_elektrik.plot([i for i in range(nutzungsdauer + 1)], [beww * wartungsfaktor * anzahl_anlage * 2000 * ausfalls_wartung_motor(i) for i in range(nutzungsdauer + 1)], linestyle='-', color='orange')
                 subplot3_elektrik.set_title("Ausfalls-/Wartungskosten Motor")
                 subplot3_elektrik.set_xlabel("Nutzungsdauer [Jahre]")
                 subplot3_elektrik.set_ylabel("Kosten [€]")
@@ -502,11 +490,10 @@ class FullScreenApp:
 
                 for subplot in figure_elektrik.get_axes():
                     subplot.grid(True, linestyle='--', alpha=0.7)
-
-               
-                
+             
                 canvas_elektrik = FigureCanvasTkAgg(figure_elektrik, master=frame_graph_elektrik)
                 canvas_elektrik.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
+
 
 
                 # Pneumatik Ausgabe
@@ -623,6 +610,9 @@ class FullScreenApp:
 
 
         # Zurück zum Hauptmenü   
+
+
+# Zurück zum Hauptmenü und Fenster zerstören   
     def back_to_main_menu(self):
         # Placeholder confirmation message
         user_response = messagebox.askyesno("Back to Hauptmenü", "Do you want to go back to Hauptmenü?")
@@ -633,9 +623,7 @@ class FullScreenApp:
             root.mainloop()
 
 
-
-
-        # Als PDF speichern
+# Ergebnisse als PDF speichern (noch nicht funktionsfähig)   
     def save_results_as_pdf(self):
         file_path = filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("PDF files", "*.pdf")])
 
@@ -655,6 +643,8 @@ class FullScreenApp:
                 # Close the PdfPages object
                 pdf.close()
 
+
+# Graphen als PNG speichern (Versuch für PDF speichern)
     def render_figure_to_png(self, figure):
         # Render the Matplotlib figure to a PNG image
         figure_canvas = FigureCanvasTkAgg(figure, master=self.root)
@@ -664,8 +654,9 @@ class FullScreenApp:
         
         return figure_image
 
+
+# Programm ausführen
 if __name__ == "__main__":
     root = tk.Tk()
     app = FullScreenApp(root)
-
 root.mainloop()
