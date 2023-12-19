@@ -272,6 +272,14 @@ class FullScreenApp:
                 bewa = 1.5
             elif anschaffungskosten=="sehr wichtig":
                 bewa = 2
+
+            # Betrieb hinsichtlich Wartungskosten
+            if schichtmodell == "Zweischichtbetrieb":
+                wartungsfaktor = 0.65
+            elif schichtmodell =="Dreischichtbetrieb":
+                wartungsfaktor = 0.85
+            elif schichtmodell == "Dauerbetrieb":
+                wartungsfaktor = 1
             
             # Angaben Elektrik          
             anschaffungskosten_elektrik_preis = 3000
@@ -348,8 +356,8 @@ class FullScreenApp:
             integral_result = sp.integrate(ausfalls_wartung_motor(x), (x, 0, nutzungsdauer)).evalf()
 
             # Multiplizieren Sie das Integralergebnis mit den Routine-Wartungskosten
-            wartungskosten_elektrik = (routine_wartung_motor_kosten * nutzungsdauer * anzahl_anlage + integral_result * 2000 * anzahl_anlage) * beww
-            routine_wartungskosten_elektrik = anzahl_anlage * routine_wartung_motor_kosten * nutzungsdauer
+            wartungskosten_elektrik = (routine_wartung_motor_kosten * nutzungsdauer * anzahl_anlage + integral_result * 2000 * anzahl_anlage) * beww * wartungsfaktor
+            routine_wartungskosten_elektrik = anzahl_anlage * routine_wartung_motor_kosten * nutzungsdauer * wartungsfaktor
             
 
             # Wartungskosten Pneumatik:
@@ -372,8 +380,8 @@ class FullScreenApp:
             integral_result = sp.integrate(ausfalls_wartung_pneumatik(x), (x, 0, nutzungsdauer)).evalf()
 
             # Multiplizieren Sie das Integralergebnis mit den Routine-Wartungskosten
-            wartungskosten_pneumatik = ((routine_wartung_kompressor_kosten  + routine_wartung_zylinder_kosten * anzahl_anlage) * nutzungsdauer + integral_result * 2000 * anzahl_anlage + integral_result * 10000) * beww
-            routine_wartungskosten_pneumatik = (anzahl_anlage * routine_wartung_zylinder_kosten + routine_wartung_kompressor_kosten) * nutzungsdauer
+            wartungskosten_pneumatik = ((routine_wartung_kompressor_kosten  + routine_wartung_zylinder_kosten * anzahl_anlage) * nutzungsdauer + integral_result * 2000 * anzahl_anlage + integral_result * 10000) * beww * wartungsfaktor
+            routine_wartungskosten_pneumatik = (anzahl_anlage * routine_wartung_zylinder_kosten + routine_wartung_kompressor_kosten) * nutzungsdauer * wartungsfaktor
 
             gesamtkosten_elektrik = anschaffungskosten_elektrik + wartungskosten_elektrik + energiekosten_elektrik
             gesamtkosten_pneumatik = anschaffungskosten_pneumatik + wartungskosten_pneumatik + energiekosten_pneumatik
@@ -422,7 +430,7 @@ class FullScreenApp:
                 nutzungsdauer = int(self.manual_data["Nutzungsdauer"].get())
 
                 # 1. routine_wartungskosten_elektrik
-                routine_wartungskosten_elektrik = routine_wartung_motor_kosten * anzahl_anlage * x * beww
+                routine_wartungskosten_elektrik = routine_wartung_motor_kosten * anzahl_anlage * x * beww * wartungsfaktor
 
                 # 2. energiekosten_elektrik
                 energiekosten_elektrik = leistung_elektrik * stunden_pro_woche * 52 * x * anzahl_anlage * strompreis * wirkungsgrad_elektrisch * bewe
@@ -443,20 +451,21 @@ class FullScreenApp:
                     return sp.Piecewise((exponential_function1(x), condition), (exponential_function2(x), True))
 
                 # Berechnen Sie das bestimmte Integral von 0 bis 30
-                integral_result = sp.integrate(ausfalls_wartung_motor(x), (x, 0, nutzungsdauer)).evalf()
+                integral_values = [sp.integrate(wartungsfaktor * anzahl_anlage * anschaffungskosten_elektrik_preis * ausfalls_wartung_motor(x), (x, 0, i)).evalf() for i in range(nutzungsdauer + 1)]
+                print(integral_values)
 
                 # 4. gesamtkosten_elektrik
                 # Berechnung der Werte
                 x_values = range(nutzungsdauer + 1)
                 elektrik_routine_wartungskosten_values = [routine_wartungskosten_elektrik.subs(x, i).evalf() for i in x_values]
                 elektrik_energiekosten_values = [energiekosten_elektrik.subs(x, i).evalf() for i in x_values]
-                ausfall_wartung_motor_values = [2000 * anzahl_anlage * ausfalls_wartung_motor(i).evalf() for i in x_values]
+                
 
-                print(ausfall_wartung_motor_values)
+             
 
                 # Erstellen des Gesamtgraphen
-                gesamt_graph_elektrik = [anschaffungskosten_elektrik + routine + energie + ausfall for routine, energie, ausfall in zip(elektrik_routine_wartungskosten_values, elektrik_energiekosten_values, ausfall_wartung_motor_values)]
-
+                gesamt_graph_elektrik = [anschaffungskosten_elektrik + routine + energie + ausfall for routine, energie, ausfall in zip(elektrik_routine_wartungskosten_values, elektrik_energiekosten_values, integral_values)]
+                
                 # Berechnung und Hinzufügen der Graphen
                 # Berechnung und Hinzufügen der Graphen
                 subplot1_elektrik = figure_elektrik.add_subplot(2, 2, 1)
@@ -474,7 +483,7 @@ class FullScreenApp:
                 subplot2_elektrik.set_ylabel("Kosten [€]")
                 
                 subplot3_elektrik = figure_elektrik.add_subplot(2, 2, 3)
-                subplot3_elektrik.plot([i for i in range(nutzungsdauer + 1)], [anzahl_anlage * 2000 * ausfalls_wartung_motor(i) for i in range(nutzungsdauer + 1)], linestyle='-', color='orange')
+                subplot3_elektrik.plot([i for i in range(nutzungsdauer + 1)], [wartungsfaktor * anzahl_anlage * 2000 * ausfalls_wartung_motor(i) for i in range(nutzungsdauer + 1)], linestyle='-', color='orange')
                 subplot3_elektrik.set_title("Ausfalls-/Wartungskosten Motor")
                 subplot3_elektrik.set_xlabel("Nutzungsdauer [Jahre]")
                 subplot3_elektrik.set_ylabel("Kosten [€]")
@@ -515,7 +524,7 @@ class FullScreenApp:
                 nutzungsdauer = int(self.manual_data["Nutzungsdauer"].get())
 
                 # 1. routine_wartungskosten_pneumatik
-                routine_wartungskosten_pneumatik = (routine_wartung_zylinder_kosten * anzahl_anlage + routine_wartung_kompressor_kosten) * x 
+                routine_wartungskosten_pneumatik = (routine_wartung_zylinder_kosten * anzahl_anlage + routine_wartung_kompressor_kosten) * x * wartungsfaktor
 
                 # 2. energiekosten_pneumatik
                 energiekosten_pneumatik = leistung_pneumatik * stunden_pro_woche * 52 *  x * strompreis
@@ -531,20 +540,36 @@ class FullScreenApp:
                     condition = sp.LessThan(x, 6.2)
                     return sp.Piecewise((exponential_function1(x), condition), (exponential_function2(x), True))
 
-                integral_result = sp.integrate(2*ausfalls_wartung_pneumatik(x), (x, 0, nutzungsdauer)).evalf()
+                integral_values_zylinder = [sp.integrate(anzahl_anlage * wartungsfaktor * anschaffungskosten_pneumatik_preis * ausfalls_wartung_pneumatik(x), (x, 0, i)).evalf() for i in range(nutzungsdauer + 1)]
+
+                print(integral_values_zylinder)
+
+                def exponential_function1(x):
+                    return 0.04 * sp.exp(-0.55 * x) + 0.03
+
+                def exponential_function2(x):
+                    return 0.02 * sp.exp(0.2 * (x - 20)) + 0.03
+
+                def ausfalls_wartung_pneumatik(x):
+                    condition = sp.LessThan(x, 6.2)
+                    return sp.Piecewise((exponential_function1(x), condition), (exponential_function2(x), True))
+
+                integral_values_kompressor = [sp.integrate(wartungsfaktor * anschaffungskosten_kompressor_preis * ausfalls_wartung_pneumatik(x), (x, 0, i)).evalf() for i in range(nutzungsdauer + 1)]
+
+                print(integral_values_kompressor)
 
                 # 4. gesamtkosten pneumatik
                 # Berechnung der Werte
                 x_values = range(nutzungsdauer + 1)
                 pneumatik_routine_wartungskosten_values = [routine_wartungskosten_pneumatik.subs(x, i).evalf() for i in x_values]
                 pneumatik_energiekosten_values = [energiekosten_pneumatik.subs(x, i).evalf() for i in x_values]
-                ausfall_wartung_pneuamtik_values = [2000 * anzahl_anlage * ausfalls_wartung_pneumatik(i).evalf() for i in x_values]
+                
 
-                print(ausfall_wartung_pneuamtik_values)
+           
 
                 # Erstellen des Gesamtgraphen
-                gesamt_graph_pneumatik = [anschaffungskosten_pneumatik + routine + energie + ausfall for routine, energie, ausfall in zip(pneumatik_routine_wartungskosten_values, pneumatik_energiekosten_values, ausfall_wartung_pneuamtik_values)]
-
+                gesamt_graph_pneumatik = [anschaffungskosten_pneumatik + routine + energie + ausfallzylinder + ausfallkompressor for routine, energie, ausfallzylinder, ausfallkompressor in zip(pneumatik_routine_wartungskosten_values, pneumatik_energiekosten_values, integral_values_zylinder, integral_values_kompressor)]
+                
                 # Berechnung und Hinzufügen der Graphen
                 subplot1_pneumatik = figure_pneumatik.add_subplot(2, 2, 1)
                 subplot1_pneumatik.plot([i for i in range(nutzungsdauer + 1)], [routine_wartungskosten_pneumatik.subs(x, i) for i in range(nutzungsdauer + 1)], linestyle='-', color='blue')
@@ -559,7 +584,7 @@ class FullScreenApp:
                 subplot2_pneumatik.set_ylabel("Kosten [€]")
 
                 subplot3_pneumatik = figure_pneumatik.add_subplot(2, 2, 3)
-                subplot3_pneumatik.plot([i for i in range(nutzungsdauer + 1)], [anzahl_anlage * 2000 * ausfalls_wartung_pneumatik(i) for i in range(nutzungsdauer + 1)], linestyle='-', color='blue')
+                subplot3_pneumatik.plot([i for i in range(nutzungsdauer + 1)], [wartungsfaktor * anzahl_anlage * 2000 * ausfalls_wartung_pneumatik(i) for i in range(nutzungsdauer + 1)], linestyle='-', color='blue')
                 subplot3_pneumatik.set_title("Ausfalls-/Wartungskosten Pneumatik")
                 subplot3_pneumatik.set_xlabel("Nutzungsdauer [Jahre]")
                 subplot3_pneumatik.set_ylabel("Kosten [€]")
