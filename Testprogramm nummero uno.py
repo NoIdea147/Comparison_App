@@ -60,7 +60,9 @@ class FullScreenApp:
         menu_frame = ttk.Frame(self.root)
         menu_frame.pack(side="top", fill="x")
 
-        ttk.Label(self.root, text="Select Component:").pack(pady=50)
+        ttk.Label(self.root, text = "Elektrik - Pneumatik - Vergleichsprogramm", font=("Helvetica", 24)).pack(pady=4)
+
+        ttk.Label(self.root, text="Bauteil auswählen:", font = ("Helvetica", 14)).pack(pady=20)
         self.component_dropdown = ttk.Combobox(self.root, values=self.component_data)
         self.component_dropdown.pack(pady=10)
 
@@ -297,7 +299,6 @@ class FullScreenApp:
 
 
             # Angaben Pneumatik
-            anschaffungskosten_kompressor_preis = 10000
             anschaffungskosten_pneumatik_preis=1000
             routine_wartung_kompressor_kosten = 500
             routine_wartung_zylinder_kosten = 250
@@ -320,12 +321,15 @@ class FullScreenApp:
 
             if ges_vstrom_zylinder < vstrom_kompressor_klein:            
                 leistung_pneumatik = leistung_kompressor_klein
+                anschaffungskosten_kompressor_preis = 10000
 
             elif ges_vstrom_zylinder < vstrom_kompressor_mittel and ges_vstrom_zylinder >= vstrom_kompressor_klein:  
                 leistung_pneumatik = leistung_kompressor_mittel
+                anschaffungskosten_kompressor_preis = 30000
 
             elif ges_vstrom_zylinder < vstrom_kompressor_groß and ges_vstrom_zylinder >= vstrom_kompressor_mittel:
                 leistung_pneumatik = leistung_kompressor_groß
+                anschaffungskosten_kompressor_preis = 60000
 
 
             # Anschaffungskosten Berechnung
@@ -333,7 +337,7 @@ class FullScreenApp:
             anschaffungskosten_pneumatik = (anschaffungskosten_pneumatik_preis * anzahl_anlage + anschaffungskosten_kompressor_preis) * bewa
 
             # Energiekosten Berechnung
-            energiekosten_elektrik = leistung_elektrik * stunden_pro_woche * 52 * nutzungsdauer * anzahl_anlage * strompreis * wirkungsgrad_elektrisch * bewe
+            energiekosten_elektrik = leistung_elektrik * stunden_pro_woche * 52 * nutzungsdauer * anzahl_anlage * strompreis * bewe / wirkungsgrad_elektrisch 
             energiekosten_pneumatik = leistung_pneumatik * stunden_pro_woche * 52 *  nutzungsdauer * strompreis * bewe
           
             # Wartungskosten Elektrik:                  
@@ -380,7 +384,7 @@ class FullScreenApp:
             integral_result = sp.integrate(ausfalls_wartung_pneumatik(x), (x, 0, nutzungsdauer)).evalf()
 
             # Multiplizieren Sie das Integralergebnis mit den Routine-Wartungskosten
-            wartungskosten_pneumatik = ((routine_wartung_kompressor_kosten  + routine_wartung_zylinder_kosten * anzahl_anlage) * nutzungsdauer + integral_result * 2000 * anzahl_anlage + integral_result * 10000) * beww * wartungsfaktor
+            wartungskosten_pneumatik = ((routine_wartung_kompressor_kosten  + routine_wartung_zylinder_kosten * anzahl_anlage) * nutzungsdauer + integral_result * anschaffungskosten_pneumatik_preis * anzahl_anlage + integral_result * anschaffungskosten_kompressor_preis) * beww * wartungsfaktor
             routine_wartungskosten_pneumatik = (anzahl_anlage * routine_wartung_zylinder_kosten + routine_wartung_kompressor_kosten) * nutzungsdauer * wartungsfaktor
 
             gesamtkosten_elektrik = anschaffungskosten_elektrik + wartungskosten_elektrik + energiekosten_elektrik
@@ -412,10 +416,11 @@ class FullScreenApp:
                 # Elektrik Ausgabe
                 ttk.Label(frame_elektrik, text="Elektrisch", font=("Helvetica", 20, "bold")).pack(side=tk.TOP, pady=10)
 
-                ttk.Label(frame_elektrik, text=f"Wartungskosten Elektrik: {round(wartungskosten_elektrik, 2)}", font=("Helvetica", 16)).pack(pady=5)
-                ttk.Label(frame_elektrik, text=f"Energiekosten Elektrik: {round(energiekosten_elektrik, 2)}", font=("Helvetica", 16)).pack(pady=5)
-                ttk.Label(frame_elektrik, text=f"Installationskosten Elektrik: {round(anschaffungskosten_elektrik, 2)}", font=("Helvetica", 16)).pack(pady=5)
-                ttk.Label(frame_elektrik, text=f"Gesamtkosten Elektrik: {round(gesamtkosten_elektrik, 2)}", font=("Helvetica", 16)).pack(pady=5)
+                ttk.Label(frame_elektrik, text=f"Wartungskosten Elektrik: {round(wartungskosten_elektrik, 2)}", font=("Helvetica", 14)).pack(pady=4)
+                ttk.Label(frame_elektrik, text=f"Routinewartungskosten: {round(routine_wartungskosten_elektrik, 2)}", font=("Helvetica", 14)).pack(pady=4)
+                ttk.Label(frame_elektrik, text=f"Energiekosten Elektrik: {round(energiekosten_elektrik, 2)}", font=("Helvetica", 14)).pack(pady=4)
+                ttk.Label(frame_elektrik, text=f"Installationskosten Elektrik: {round(anschaffungskosten_elektrik, 2)}", font=("Helvetica", 14)).pack(pady=4)
+                ttk.Label(frame_elektrik, text=f"Gesamtkosten Elektrik: {round(gesamtkosten_elektrik, 2)}", font=("Helvetica", 14)).pack(pady=4)
 
                 # Frame für Graphen Elektrik
                 frame_graph_elektrik = ttk.Frame(frame_elektrik)
@@ -452,7 +457,7 @@ class FullScreenApp:
 
                 # Berechnen Sie das bestimmte Integral von 0 bis 30
                 integral_values = [sp.integrate(wartungsfaktor * anzahl_anlage * anschaffungskosten_elektrik_preis * ausfalls_wartung_motor(x), (x, 0, i)).evalf() for i in range(nutzungsdauer + 1)]
-                print(integral_values)
+               
 
                 # 4. gesamtkosten_elektrik
                 # Berechnung der Werte
@@ -507,10 +512,11 @@ class FullScreenApp:
                 # Pneumatik Ausgabe
                 ttk.Label(frame_pneumatik, text="Pneumatisch", font=("Helvetica", 20, "bold")).pack(side=tk.TOP, pady=10)
 
-                ttk.Label(frame_pneumatik, text=f"Wartungskosten Pneumatik: {round(wartungskosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(pady=5)
-                ttk.Label(frame_pneumatik, text=f"Energiekosten Pneumatik: {round(energiekosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(pady=5)
-                ttk.Label(frame_pneumatik, text=f"Installationskosten Pneumatik: {round(anschaffungskosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(pady=5)
-                ttk.Label(frame_pneumatik, text=f"Gesamtkosten Pneumatik: {round(gesamtkosten_pneumatik, 2)}", font=("Helvetica", 16)).pack(pady=5)
+                ttk.Label(frame_pneumatik, text=f"Wartungskosten Pneumatik: {round(wartungskosten_pneumatik, 2)}", font=("Helvetica", 14)).pack(pady=4)
+                ttk.Label(frame_pneumatik, text=f"Routinewartungskosten: {round(routine_wartungskosten_pneumatik, 2)}", font=("Helvetica", 14)).pack(pady=4)
+                ttk.Label(frame_pneumatik, text=f"Energiekosten Pneumatik: {round(energiekosten_pneumatik, 2)}", font=("Helvetica", 14)).pack(pady=4)
+                ttk.Label(frame_pneumatik, text=f"Installationskosten Pneumatik: {round(anschaffungskosten_pneumatik, 2)}", font=("Helvetica", 14)).pack(pady=4)
+                ttk.Label(frame_pneumatik, text=f"Gesamtkosten Pneumatik: {round(gesamtkosten_pneumatik, 2)}", font=("Helvetica", 14)).pack(pady=4)
 
                 # Frame für Graphen Pneumatik
                 frame_graph_pneumatik = ttk.Frame(frame_pneumatik)
@@ -524,10 +530,10 @@ class FullScreenApp:
                 nutzungsdauer = int(self.manual_data["Nutzungsdauer"].get())
 
                 # 1. routine_wartungskosten_pneumatik
-                routine_wartungskosten_pneumatik = (routine_wartung_zylinder_kosten * anzahl_anlage + routine_wartung_kompressor_kosten) * x * wartungsfaktor
+                routine_wartungskosten_pneumatik = (routine_wartung_zylinder_kosten * anzahl_anlage + routine_wartung_kompressor_kosten) * x * wartungsfaktor * beww
 
                 # 2. energiekosten_pneumatik
-                energiekosten_pneumatik = leistung_pneumatik * stunden_pro_woche * 52 *  x * strompreis
+                energiekosten_pneumatik = leistung_pneumatik * stunden_pro_woche * 52 *  x * strompreis * bewe
 
                 # 3. ausfalls_wartung_pneumatik
                 def exponential_function1(x):
@@ -540,9 +546,8 @@ class FullScreenApp:
                     condition = sp.LessThan(x, 6.2)
                     return sp.Piecewise((exponential_function1(x), condition), (exponential_function2(x), True))
 
-                integral_values_zylinder = [sp.integrate(anzahl_anlage * wartungsfaktor * anschaffungskosten_pneumatik_preis * ausfalls_wartung_pneumatik(x), (x, 0, i)).evalf() for i in range(nutzungsdauer + 1)]
+                integral_values_zylinder = [sp.integrate(beww * anzahl_anlage * wartungsfaktor * anschaffungskosten_pneumatik_preis * ausfalls_wartung_pneumatik(x), (x, 0, i)).evalf() for i in range(nutzungsdauer + 1)]
 
-                print(integral_values_zylinder)
 
                 def exponential_function1(x):
                     return 0.04 * sp.exp(-0.55 * x) + 0.03
@@ -554,9 +559,8 @@ class FullScreenApp:
                     condition = sp.LessThan(x, 6.2)
                     return sp.Piecewise((exponential_function1(x), condition), (exponential_function2(x), True))
 
-                integral_values_kompressor = [sp.integrate(wartungsfaktor * anschaffungskosten_kompressor_preis * ausfalls_wartung_pneumatik(x), (x, 0, i)).evalf() for i in range(nutzungsdauer + 1)]
+                integral_values_kompressor = [sp.integrate(beww * wartungsfaktor * anschaffungskosten_kompressor_preis * ausfalls_wartung_pneumatik(x), (x, 0, i)).evalf() for i in range(nutzungsdauer + 1)]
 
-                print(integral_values_kompressor)
 
                 # 4. gesamtkosten pneumatik
                 # Berechnung der Werte
@@ -584,7 +588,7 @@ class FullScreenApp:
                 subplot2_pneumatik.set_ylabel("Kosten [€]")
 
                 subplot3_pneumatik = figure_pneumatik.add_subplot(2, 2, 3)
-                subplot3_pneumatik.plot([i for i in range(nutzungsdauer + 1)], [wartungsfaktor * anzahl_anlage * 2000 * ausfalls_wartung_pneumatik(i) for i in range(nutzungsdauer + 1)], linestyle='-', color='blue')
+                subplot3_pneumatik.plot([i for i in range(nutzungsdauer + 1)], [beww * wartungsfaktor * anzahl_anlage * anschaffungskosten_pneumatik_preis * ausfalls_wartung_pneumatik(i) for i in range(nutzungsdauer + 1)], linestyle='-', color='blue')
                 subplot3_pneumatik.set_title("Ausfalls-/Wartungskosten Pneumatik")
                 subplot3_pneumatik.set_xlabel("Nutzungsdauer [Jahre]")
                 subplot3_pneumatik.set_ylabel("Kosten [€]")
