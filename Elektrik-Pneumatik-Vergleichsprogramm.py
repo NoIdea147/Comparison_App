@@ -43,12 +43,22 @@ class FullScreenApp:
         self.canvas2 = None
 
         self.component_data = ["Gurtumsetzer", "Staurollenförderer"]
+        self.country_data = ["USA", "China", "Deutschland", "Österreich"]
+
+        self.zoll_el = 0
+        self.zoll_pn = 0
+        self.fracht_el = 0
+        self.fracht_pn = 0
+        self.versicherung = 0 
+    
+
 
         # Standardwerte für Optionen
         self.standardwert_wirkungsgrad_elektrisch = 0.95
-        self.standardwert_wirkungsgrad_pneumatisch = 0.27
+        self.standardwert_wirkungsgrad_pneumatisch = 0.85
         self.standardwert_strompreis = 0.21
-        self.standardwert_ueberschneidungsfaktor = 0.6
+        self.standardwert_ueberschneidungsfaktor = 0.5
+        self.standardwert_rabatt = 0
 
         # Globale Variablen für Optionen
         self.strompreis_entry = tk.DoubleVar(value=self.standardwert_strompreis)
@@ -57,7 +67,7 @@ class FullScreenApp:
         self.ueberschneidungsfaktor_entry = tk.DoubleVar(value=self.standardwert_ueberschneidungsfaktor)
 
         # Globale Variablen für Einstellungen
-        self.rabatte_entry = tk.DoubleVar(value=0)
+        self.rabatt_entry = tk.DoubleVar(value=self.standardwert_rabatt)
 
         # Datentyp für manuelle Daten
         self.selected_component = None
@@ -71,7 +81,8 @@ class FullScreenApp:
             "Energiekosten": tk.StringVar(value=""),  
             "Anschaffungskosten": tk.StringVar(value=""),          
             "BerechnungStarten": tk.StringVar(value="Ja"),
-            "Druck": tk.IntVar(value="")
+            "Druck": tk.IntVar(value=""),
+            "Land": tk.StringVar(value="")
         }
 
         self.create_menu()
@@ -151,7 +162,7 @@ class FullScreenApp:
 
         self.frame_wirkungsgrad = tk.Frame(self.options_window, width=500, height=600, bg="white")
         self.frame_strompreis = tk.Frame(self.options_window, width=500, height=600, bg="white")
-        self.frame_anschaffungskosten = tk.Frame(self.options_window, width=500, height=600, bg="white")
+        self.frame_anschaffungskosten = tk.Frame(self.options_window, width=500, height=600)
         self.frame_wartungskosten = tk.Frame(self.options_window, width=500, height=600, bg="white")
 
         self.frame_wirkungsgrad.pack_propagate(False)
@@ -164,18 +175,18 @@ class FullScreenApp:
         self.hide_frames()
 
     def create_options(self):
-        btn_wirkungsgrad = tk.Button(self.frame_options_btn, text="Wirkungsgrad", font=("Helvetica", 10), command=lambda: self.show_frame(self.frame_wirkungsgrad), bg="white").pack(side="left")
-        btn_strompreis = tk.Button(self.frame_options_btn, text="Strompreis", font=("Helvetica", 10), command=lambda: self.show_frame(self.frame_strompreis), bg="white").pack(side="left")
-        btn_anschaffungskosten = tk.Button(self.frame_options_btn, text="Anschaffungskosten", font=("Helvetica", 10), command=lambda: self.show_frame(self.frame_anschaffungskosten), bg="white").pack(side="left")
-        btn_wartungskosten = tk.Button(self.frame_options_btn, text="Wartungskosten", font=("Helvetica", 10), command=lambda: self.show_frame(self.frame_wartungskosten), bg="white").pack(side="left")
+        btn_wirkungsgrad = tk.Button(self.frame_options_btn, text="Wirkungsgrad", font=("Helvetica", 10), command=lambda: self.show_frame(self.frame_wirkungsgrad), bg="white")
+        btn_strompreis = tk.Button(self.frame_options_btn, text="Strompreis", font=("Helvetica", 10), command=lambda: self.show_frame(self.frame_strompreis), bg="white")
+        btn_anschaffungskosten = tk.Button(self.frame_options_btn, text="Anschaffungskosten", font=("Helvetica", 10), command=lambda: self.show_frame(self.frame_anschaffungskosten), bg="white")
+        btn_wartungskosten = tk.Button(self.frame_options_btn, text="Wartungskosten", font=("Helvetica", 10), command=lambda: self.show_frame(self.frame_wartungskosten), bg="white")
 
-        btn_save = tk.Button(self.frame_options_btn, text="Werte speichern", font=("Helvetica", 10), command=self.save_options, bg="lightgray").pack(side="right")
+        btn_save = tk.Button(self.frame_options_btn, text="Werte speichern", font=("Helvetica", 10), command=self.save_options, bg="lightgray")
 
-        btn_wirkungsgrad.pack(side="left", padx=5)
-        btn_strompreis.pack(side="left", padx=5)
-        btn_anschaffungskosten.pack(side="left", padx=5)
-        btn_wartungskosten.pack(side="left", padx=5)
-        btn_save.pack(side="left", padx=5)
+        btn_wirkungsgrad.pack(side="left")
+        btn_strompreis.pack(side="left")
+        btn_anschaffungskosten.pack(side="left")
+        btn_wartungskosten.pack(side="left")
+        btn_save.pack(side="right")
 
         ttk.Label(self.frame_wirkungsgrad, text="Wirkungsgrad elektrisch:").pack(pady=10)
         wirkungsgrad_elektrisch_entry = ttk.Entry(self.frame_wirkungsgrad, textvariable=self.wirkungsgrad_elektrisch_entry)
@@ -193,6 +204,62 @@ class FullScreenApp:
         ueberschneidungsfaktor_entry = ttk.Entry(self.frame_strompreis, textvariable=self.ueberschneidungsfaktor_entry)
         ueberschneidungsfaktor_entry.pack(pady=5)
 
+        ttk.Label(self.frame_anschaffungskosten, text="Anlagenstandort:", font=("Helvetica", 12)).grid(row=1, column=1, padx=(10, 10), pady=(10, 10))
+        self.country_dropdown = ttk.Combobox(self.frame_anschaffungskosten, values=self.country_data, textvariable=self.manual_data["Land"], width=30)
+        self.country_dropdown.grid(row=1, column=2, padx=(10, 10), pady=(10, 10))
+
+        if self.country_dropdown == "USA":
+            self.fracht_el=10000
+            self.zoll_el=10000
+
+            self.fracht_pn=10000
+            self.zoll_pn=10000
+          
+        elif self.country_dropdown == "China":
+            self.fracht_el=10000
+            self.zoll_el=10000
+
+            self.fracht_pn=10000
+            self.zoll_pn=10000
+           
+        elif self.country_dropdown == "Deutschland":
+            self.fracht_el=10000
+            self.zoll_el=10000
+
+            self.fracht_pn=10000
+            self.zoll_pn=10000
+
+        elif self.country_dropdown == "Österreich":
+            self.fracht_el=10000
+            self.zoll_el=10000
+
+            self.fracht_pn=10000
+            self.zoll_pn=10000
+
+
+        self.verpackung_el=1000
+        ttk.Label(self.frame_anschaffungskosten, text=f"Verpackung Motor: {self.verpackung_el} €", font=("Helvetica", 12)).grid(row=3, column=1)
+
+        self.verpackung_pn=1000
+        ttk.Label(self.frame_anschaffungskosten, text=f"Verpackung Pneumatik: {self.verpackung_pn} €", font=("Helvetica", 12)).grid(row=4, column=1)
+
+        
+        self.montage_el=1000
+        ttk.Label(self.frame_anschaffungskosten, text=f"Montage Motor: {self.montage_el} %", font=("Helvetica", 12)).grid(row=5, column=1)
+   
+        self.montage_pn=1000
+        ttk.Label(self.frame_anschaffungskosten, text=f"Montage Zylinder: {self.montage_pn} €", font=("Helvetica", 12)).grid(row=6, column=1)
+
+
+        self.versicherung=20
+        ttk.Label(self.frame_anschaffungskosten, text=f"Versicherung: {self.versicherung} %", font=("Helvetica", 12)).grid(row=7, column=1)
+
+
+        ttk.Label(self.frame_anschaffungskosten, text="Rabatt:", font=("Helvetica", 12)).grid(row=2, column=1)
+        rabatt_entry = ttk.Entry(self.frame_anschaffungskosten, textvariable=self.rabatt_entry)
+        rabatt_entry.grid(row=2, column=2)
+
+
     def hide_frames(self):
         self.frame_wirkungsgrad.pack_forget()
         self.frame_strompreis.pack_forget()
@@ -208,8 +275,8 @@ class FullScreenApp:
         self.standardwert_wirkungsgrad_pneumatisch = self.wirkungsgrad_pneumatisch_entry.get()
         self.standardwert_strompreis = self.strompreis_entry.get()
         self.standardwert_ueberschneidungsfaktor = self.ueberschneidungsfaktor_entry.get()
-
-
+        self.standardwert_rabatt = self.rabatt_entry.get()
+        self.country_dropdown.get()
 
         # Modify Data input
 
@@ -217,28 +284,28 @@ class FullScreenApp:
 # Einstellungsfenster erstellen
     def open_einstellungen_window(self):
         options_window = tk.Toplevel(self.root)
-        options_window.geometry("250x400")
+        options_window.geometry("550x660+220+170")
         options_window.title("Options")
-
 
 
 # Motoren Vorschau
     def motoren_window(self):
         motoren_window = tk.Toplevel(self.root)
-        motoren_window.geometry("250x400")
+        motoren_window.geometry("600x660x770x170")
         motoren_window.title("Motoren")
 
 
 # Zylinder Vorschau
     def zylinder_window(self):
         zylinder_window = tk.Toplevel(self.root)
-        zylinder_window.geometry("250x400")
+        zylinder_window.geometry("600x660x770x170")
         zylinder_window.title("Zylinder")
+
 
 # Kompressor Vorschau
     def kompressor_window(self):
         kompressor_window = tk.Toplevel(self.root)
-        kompressor_window.geometry("250x400")
+        kompressor_window.geometry("600x660x770x170")
         kompressor_window.title("Kompressoren")
 
 
@@ -316,6 +383,7 @@ class FullScreenApp:
             wirkungsgrad_elektrisch = float(self.wirkungsgrad_elektrisch_entry.get())
             wirkungsgrad_pneumatik = float(self.wirkungsgrad_pneumatisch_entry.get())
             ueberschneidungsfaktor = float(self.ueberschneidungsfaktor_entry.get())
+            rabatt = float(self.rabatt_entry.get())
 
 
             # Die Manuellen Daten aufrufen
@@ -414,7 +482,7 @@ class FullScreenApp:
             routine_wartung_kompressor_kosten = 500         # Euro
             routine_wartung_zylinder_kosten = 250           # Euro
             pi = math.pi
-            kolbendurchmesser = 20      # mm
+            kolbendurchmesser = 35      # mm
             zylindertyp = 2         # einfach wirkend = 1; doppelt wirkend = 2
             vstrom_zylinder = (((kolbendurchmesser/100)**2)*pi)/4 * hub/100 * self.druck * self.durchsatz/60 * zylindertyp        # l/min
             
@@ -423,8 +491,8 @@ class FullScreenApp:
             leistung_pneumatik = ges_vstrom_zylinder/1000 * self.druck * 100000      # Watt
             
             # Anschaffungskosten Berechnung
-            self.anschaffungskosten_elektrik = anschaffungskosten_elektrik_preis * self.anzahl_anlage * bewa
-            self.anschaffungskosten_pneumatik = (anschaffungskosten_pneumatik_preis * self.anzahl_anlage + anschaffungskosten_kompressor_preis) * bewa
+            self.anschaffungskosten_elektrik = (anschaffungskosten_elektrik_preis + self.zoll_el + self.fracht_el + self.verpackung_el + self.montage_el) * self.anzahl_anlage * bewa * (1-rabatt/100) * (1-self.versicherung/100)
+            self.anschaffungskosten_pneumatik = ((anschaffungskosten_pneumatik_preis + self.zoll_pn + self.fracht_pn + self.verpackung_pn + self.montage_pn) * self.anzahl_anlage + anschaffungskosten_kompressor_preis) * bewa * (1-rabatt/100) * (1-self.versicherung/100)
 
             # Energiekosten Berechnung
             self.energiekosten_elektrik = leistung_elektrik * stunden_pro_woche * 52 * self.nutzungsdauer * self.anzahl_anlage * strompreis * bewe / wirkungsgrad_elektrisch       # Euro
@@ -645,6 +713,8 @@ class FullScreenApp:
                 subplot_combined.set_ylabel("Kosten [€]")
                 subplot_combined.legend()
 
+                subplot_combined.grid(True)
+
                 # Create a Tkinter canvas for the combined plot
                 canvas_combined = FigureCanvasTkAgg(figure_combined, master=frame_graph_combined)
                 canvas_combined.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
@@ -669,7 +739,7 @@ class FullScreenApp:
                 frame_buttons.place(x=10, y=10)
 
                 # Button hinzufügen
-                tk.Button(frame_buttons, width=30, height=2, font=("Helvetica", 12), text="Hauptmenü", bg = "turquise", command=self.back_to_main_menu).pack(pady=4)
+                tk.Button(frame_buttons, width=30, height=2, font=("Helvetica", 12), text="Hauptmenü", bg = "turquoise", command=self.back_to_main_menu).pack(pady=4)
                 tk.Button(frame_buttons, width=30, height=2, font=("Helvetica", 12), text="Modify manual data", bg = "light grey", command=self.modify_data).pack(pady=4)
                 tk.Button(frame_buttons, width=30, height=2, font=("Helvetica", 12), text="PDF speichern", bg = "light grey", command=self.create_pdf).pack(pady=4)
                 
@@ -768,7 +838,7 @@ class FullScreenApp:
             frame_graph_combined.pack(side=tk.BOTTOM, anchor=tk.CENTER, pady=10)
             
             # Graphen für Pneumatik
-            figure_combined = Figure(figsize=(7.5, 3), tight_layout=True)
+            figure_combined = Figure(figsize=(8, 3.5), tight_layout=True)
 
             # Parameter für Berechnungen
             x = sp.symbols('x')
@@ -787,6 +857,8 @@ class FullScreenApp:
             subplot_combined.set_ylabel("Kosten [€]")
             subplot_combined.legend()
 
+            subplot_combined.grid(True)
+
 
             # Speichere die Figur als Bild
             plot_img = "plot.png"
@@ -794,7 +866,7 @@ class FullScreenApp:
             plt.close(figure_combined)
 
             # Füge das Bild in das PDF ein
-            c.drawInlineImage(plot_img, 30, 30, width=530, height=230)
+            c.drawInlineImage(plot_img, 27, 27, width=540, height=245)
 
             # Logo HTL
             logo_path = r"C:\Users\micha\OneDrive\Dokumente\5AHME\Diplomarbeit\HTL_Logo.png"
