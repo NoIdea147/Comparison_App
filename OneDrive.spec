@@ -2,7 +2,7 @@
 
 
 a = Analysis(
-    ['C:\\Users\\adria\\OneDrive', '-', 'HTL', 'Wolfsberg\\Desktop\\DIPLOMARBEIT\\Code\\Comparison_App\\Testprogramm', 'nummero', 'uno.py'],
+    ['C:\\Users\\adria\\OneDrive', '-', 'HTL', 'Wolfsberg\\Desktop\\DIPLOMARBEIT\\Code\\Comparison_App\\Elektrik-Pneumatik-Vergleichsprogramm.py'],
     pathex=[],
     binaries=[],
     datas=[],
