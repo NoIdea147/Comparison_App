@@ -43,7 +43,7 @@ class FullScreenApp:
         self.canvas2 = None
 
         self.component_data = ["Gurtumsetzer", "Staurollenförderer"]
-        self.country_data = ["USA", "China", "Deutschland", "Österreich"]
+        
 
         self.zoll_el = 0
         self.zoll_pn = 0
@@ -51,23 +51,46 @@ class FullScreenApp:
         self.fracht_pn = 0
         self.versicherung = 0 
     
-
+        self.werte_liste = [
+            "GX-2-EP",
+            "SX-4-10bar",
+            "GX-4-EP",
+            "GX-7-EP",
+            "GX-11-EL-10bar",
+            "ASD-35-10bar",
+            "ASD-40-10bar",
+            "ASD-50-10bar",
+            "ASD-60-10bar",
+            "GA-160-10bar",
+            "GA-200-10bar"
+        ]
 
         # Standardwerte für Optionen
         self.standardwert_wirkungsgrad_elektrisch = 0.95
-        self.standardwert_wirkungsgrad_pneumatisch = 0.85
+        self.standardwert_wirkungsgrad_pneumatisch = 0.75
+        self.standardwert_wirkungsgrad_schläuche = 1
+        self.standardwert_wirkungsgrad_kompressor = 0.75
         self.standardwert_strompreis = 0.21
         self.standardwert_ueberschneidungsfaktor = 0.5
         self.standardwert_rabatt = 0
+        self.standardwert_wmotor = 0
+        self.standardwert_wzylinder = 0
+        self.standardwert_wkompressor = 0
 
         # Globale Variablen für Optionen
         self.strompreis_entry = tk.DoubleVar(value=self.standardwert_strompreis)
         self.wirkungsgrad_elektrisch_entry = tk.DoubleVar(value=self.standardwert_wirkungsgrad_elektrisch)
         self.wirkungsgrad_pneumatisch_entry = tk.DoubleVar(value=self.standardwert_wirkungsgrad_pneumatisch)
+        self.wirkungsgrad_schläuche_entry = tk.DoubleVar(value=self.standardwert_wirkungsgrad_schläuche)
+        self.wirkungsgrad_kompressor_entry = tk.DoubleVar(value=self.standardwert_wirkungsgrad_kompressor)
         self.ueberschneidungsfaktor_entry = tk.DoubleVar(value=self.standardwert_ueberschneidungsfaktor)
 
         # Globale Variablen für Einstellungen
         self.rabatt_entry = tk.DoubleVar(value=self.standardwert_rabatt)
+        self.w_motor_kosten_entry = tk.DoubleVar(value=self.standardwert_wmotor)
+        self.w_zylinder_kosten_entry = tk.DoubleVar(value=self.standardwert_wzylinder)
+        self.w_kompressor_kosten_entry = tk.DoubleVar(value=self.standardwert_wkompressor)
+    
 
         # Datentyp für manuelle Daten
         self.selected_component = None
@@ -81,7 +104,7 @@ class FullScreenApp:
             "Energiekosten": tk.StringVar(value=""),  
             "Anschaffungskosten": tk.StringVar(value=""),          
             "BerechnungStarten": tk.StringVar(value="Ja"),
-            "Druck": tk.IntVar(value=""),
+            "Kompressoren": tk.StringVar(value=""),
             "Land": tk.StringVar(value="")
         }
 
@@ -93,39 +116,41 @@ class FullScreenApp:
         self.root.destroy()
 
 
-# Hauptmenü erstellen
+    # Hauptmenü erstellen
     def create_menu(self):
         self.menu_frame = tk.Frame(self.root, borderwidth=1, relief="solid", bg="white")
         self.menu_frame.pack(side="top", fill="x")
    
         # Auswahlleiste
-       
-        self.bauteilauswahl = tk.Button(self.root, text="Bauteilauswahl", font = ("Helvetica", 16), bg="turquoise", command=self.auswahl_bauteil, width=18, height=5)
+        self.bauteilauswahl = tk.Button(self.root, text="Bauteilauswahl", font = ("Helvetica", 16), bg="turquoise", 
+                                        command=self.auswahl_bauteil, width=18, height=5)
         self.bauteilauswahl.pack(anchor="w")
 
-        parameter = tk.Button(self.root, text="Parameter", font = ("Helvetica", 16), bg="turquoise", command=self.open_options_window, width=18, height=5)
-        parameter.pack(anchor="w")
+        parameter = tk.Button(self.root, text="Parameter", font = ("Helvetica", 16), bg="turquoise", 
+                              command=self.open_options_window, width=18, height=5).pack(anchor="w")
 
-        einstellungen = tk.Button(self.root, text="Einstellungen", font = ("Helvetica", 16), bg="turquoise", command=self.open_einstellungen_window, width=18, height=5)
-        einstellungen.pack(anchor="w")
+        einstellungen = tk.Button(self.root, text="Einstellungen", font = ("Helvetica", 16), bg="turquoise", 
+                                  command=self.open_einstellungen_window, width=18, height=5).pack(anchor="w")
 
-        motoren = tk.Button(self.root, text="Motoren", font = ("Helvetica", 16), bg="turquoise", command=self.motoren_window, width=18, height=5)
-        motoren.pack(anchor="w")
+        motoren = tk.Button(self.root, text="Motoren", font = ("Helvetica", 16), bg="turquoise", 
+                            command=self.motoren_window, width=18, height=5).pack(anchor="w")
 
-        zylinder = tk.Button(self.root, text="Pneumatikzylinder", font = ("Helvetica", 16), bg="turquoise", command=self.zylinder_window, width=18, height=5)
-        zylinder.pack(anchor="w")
+        zylinder = tk.Button(self.root, text="Pneumatikzylinder", font = ("Helvetica", 16), bg="turquoise", 
+                             command=self.zylinder_window, width=18, height=5).pack(anchor="w")
 
-        kompressoren = tk.Button(self.root, text="Kompressoren", font = ("Helvetica", 16), bg="turquoise", command=self.kompressor_window, width=18, height=5)
-        kompressoren.pack(anchor="w")
+        kompressoren = tk.Button(self.root, text="Kompressoren", font = ("Helvetica", 16), bg="turquoise", 
+                                 command=self.kompressor_window, width=18, height=5).pack(anchor="w")
 
-        ttk.Label(self.menu_frame, text = "Elektrik - Pneumatik - Vergleichsprogramm", font=("Helvetica", 16)).grid(row=1, column=1, padx=532)
+        # Überschrift
+        ttk.Label(self.menu_frame, text = "Elektrik - Pneumatik - Vergleichsprogramm", 
+                  font=("Helvetica", 18, "bold")).pack(side="left", padx=10)
 
-         # Button zum Beenden hinzufügen
-        close_button = tk.Button(self.menu_frame, text="Beenden", command=self.ask_exit, bg="red", fg="white", font=("Helvetica", 12))
-        close_button.grid(row=1, column=2)
+        # Button zum Beenden hinzufügen
+        close_button = tk.Button(self.menu_frame, text="Beenden", command=self.ask_exit, 
+                                 bg="red", fg="white", font=("Helvetica", 12)).pack(side="right")
 
 
-# Bauteil Auswahl 
+    # Bauteil Auswahl 
     def auswahl_bauteil(self):
         button_x = self.bauteilauswahl.winfo_x()
         button_width = self.bauteilauswahl.winfo_width()
@@ -137,7 +162,8 @@ class FullScreenApp:
         self.component_dropdown = ttk.Combobox(auswahl_frame, values=self.component_data, width=30)
         self.component_dropdown.grid(row=1, column=2, padx=(10, 10), pady=(30, 5))
 
-        tk.Button(auswahl_frame, text="Dateneingabe beginnen", command=self.modify_data, font=("Helvetica", 14), width=30, bg ="turquoise").grid(row=2, column=2, padx=(10, 10), pady=(10, 5))
+        tk.Button(auswahl_frame, text="Dateneingabe beginnen", command=self.modify_data, font=("Helvetica", 14), 
+                  width=30, bg ="turquoise").grid(row=2, column=2, padx=(10, 10), pady=(20, 5))
 
 
 # Programm beenden
@@ -155,14 +181,14 @@ class FullScreenApp:
     def open_options_window(self):
         self.options_window = tk.Toplevel(self.root)
         self.options_window.geometry("550x660+220+170")
-        self.options_window.title("Options")
+        self.options_window.title("Parameter")
 
         self.frame_options_btn = tk.Frame(self.options_window, borderwidth=1, relief="solid", bg="white")
         self.frame_options_btn.pack(side="top", fill="x")
 
         self.frame_wirkungsgrad = tk.Frame(self.options_window, width=500, height=600, bg="white")
         self.frame_strompreis = tk.Frame(self.options_window, width=500, height=600, bg="white")
-        self.frame_anschaffungskosten = tk.Frame(self.options_window, width=500, height=600)
+        self.frame_anschaffungskosten = tk.Frame(self.options_window, width=500, height=600, bg="white")
         self.frame_wartungskosten = tk.Frame(self.options_window, width=500, height=600, bg="white")
 
         self.frame_wirkungsgrad.pack_propagate(False)
@@ -188,77 +214,48 @@ class FullScreenApp:
         btn_wartungskosten.pack(side="left")
         btn_save.pack(side="right")
 
-        ttk.Label(self.frame_wirkungsgrad, text="Wirkungsgrad elektrisch:").pack(pady=10)
+        ttk.Label(self.frame_wirkungsgrad, text="Wirkungsgrad Motor:").pack(pady=10)
         wirkungsgrad_elektrisch_entry = ttk.Entry(self.frame_wirkungsgrad, textvariable=self.wirkungsgrad_elektrisch_entry)
         wirkungsgrad_elektrisch_entry.pack(pady=5)
 
-        ttk.Label(self.frame_wirkungsgrad, text="Wirkungsgrad pneumatisch:").pack(pady=10)
+        ttk.Label(self.frame_wirkungsgrad, text="Wirkungsgrad Zylinder:").pack(pady=10)
         wirkungsgrad_pneumatisch_entry = ttk.Entry(self.frame_wirkungsgrad, textvariable=self.wirkungsgrad_pneumatisch_entry)
         wirkungsgrad_pneumatisch_entry.pack(pady=5)
 
-        ttk.Label(self.frame_strompreis, text="Strompreis:").pack(pady=10)
+        ttk.Label(self.frame_wirkungsgrad, text="Wirkungsgrad Schläuche:").pack(pady=10)
+        wirkungsgrad_schläuche_entry = ttk.Entry(self.frame_wirkungsgrad, textvariable=self.wirkungsgrad_schläuche_entry)
+        wirkungsgrad_schläuche_entry.pack(pady=5)
+
+        ttk.Label(self.frame_wirkungsgrad, text="Wirkungsgrad Kompressor:").pack(pady=10)
+        wirkungsgrad_kompressor_entry = ttk.Entry(self.frame_wirkungsgrad, textvariable=self.wirkungsgrad_kompressor_entry)
+        wirkungsgrad_kompressor_entry.pack(pady=5)
+
+        ttk.Label(self.frame_wirkungsgrad, text="Überschneidungsfaktor:").pack(pady=10)
+        ueberschneidungsfaktor_entry = ttk.Entry(self.frame_wirkungsgrad, textvariable=self.ueberschneidungsfaktor_entry)
+        ueberschneidungsfaktor_entry.pack(pady=5)
+
+        ttk.Label(self.frame_strompreis, text="Strompreis [€/kWh]:").pack(pady=10)
         strompreis_entry = ttk.Entry(self.frame_strompreis, textvariable=self.strompreis_entry)
         strompreis_entry.pack(pady=5)
 
-        ttk.Label(self.frame_strompreis, text="Überschneidungsfaktor:").pack(pady=10)
-        ueberschneidungsfaktor_entry = ttk.Entry(self.frame_strompreis, textvariable=self.ueberschneidungsfaktor_entry)
-        ueberschneidungsfaktor_entry.pack(pady=5)
-
-        ttk.Label(self.frame_anschaffungskosten, text="Anlagenstandort:", font=("Helvetica", 12)).grid(row=1, column=1, padx=(10, 10), pady=(10, 10))
-        self.country_dropdown = ttk.Combobox(self.frame_anschaffungskosten, values=self.country_data, textvariable=self.manual_data["Land"], width=30)
-        self.country_dropdown.grid(row=1, column=2, padx=(10, 10), pady=(10, 10))
-
-        if self.country_dropdown == "USA":
-            self.fracht_el=10000
-            self.zoll_el=10000
-
-            self.fracht_pn=10000
-            self.zoll_pn=10000
-          
-        elif self.country_dropdown == "China":
-            self.fracht_el=10000
-            self.zoll_el=10000
-
-            self.fracht_pn=10000
-            self.zoll_pn=10000
-           
-        elif self.country_dropdown == "Deutschland":
-            self.fracht_el=10000
-            self.zoll_el=10000
-
-            self.fracht_pn=10000
-            self.zoll_pn=10000
-
-        elif self.country_dropdown == "Österreich":
-            self.fracht_el=10000
-            self.zoll_el=10000
-
-            self.fracht_pn=10000
-            self.zoll_pn=10000
-
-
-        self.verpackung_el=1000
-        ttk.Label(self.frame_anschaffungskosten, text=f"Verpackung Motor: {self.verpackung_el} €", font=("Helvetica", 12)).grid(row=3, column=1)
-
-        self.verpackung_pn=1000
-        ttk.Label(self.frame_anschaffungskosten, text=f"Verpackung Pneumatik: {self.verpackung_pn} €", font=("Helvetica", 12)).grid(row=4, column=1)
-
         
-        self.montage_el=1000
-        ttk.Label(self.frame_anschaffungskosten, text=f"Montage Motor: {self.montage_el} %", font=("Helvetica", 12)).grid(row=5, column=1)
-   
-        self.montage_pn=1000
-        ttk.Label(self.frame_anschaffungskosten, text=f"Montage Zylinder: {self.montage_pn} €", font=("Helvetica", 12)).grid(row=6, column=1)
 
 
-        self.versicherung=20
-        ttk.Label(self.frame_anschaffungskosten, text=f"Versicherung: {self.versicherung} %", font=("Helvetica", 12)).grid(row=7, column=1)
-
-
-        ttk.Label(self.frame_anschaffungskosten, text="Rabatt:", font=("Helvetica", 12)).grid(row=2, column=1)
+        ttk.Label(self.frame_anschaffungskosten, text="Rabatt [%]:", font=("Helvetica", 12)).pack(pady=10)
         rabatt_entry = ttk.Entry(self.frame_anschaffungskosten, textvariable=self.rabatt_entry)
-        rabatt_entry.grid(row=2, column=2)
+        rabatt_entry.pack(pady=5)
 
+        ttk.Label(self.frame_wartungskosten, text = "Routine-Wartungskosten elektrisch [€ / Komponente / Jahr]:").pack(pady=10)
+        w_motor_kosten_entry = ttk.Entry(self.frame_wartungskosten, textvariable=self.w_motor_kosten_entry)
+        w_motor_kosten_entry.pack(pady=5)
+
+        ttk.Label(self.frame_wartungskosten, text = "Routine-Wartungskosten pneumatisch [€ / Komponente / Jahr]:").pack(pady=10)
+        w_zylinder_kosten_entry = ttk.Entry(self.frame_wartungskosten, textvariable=self.w_zylinder_kosten_entry)
+        w_zylinder_kosten_entry.pack(pady=5)
+
+        ttk.Label(self.frame_wartungskosten, text = "Routine-Wartungskosten Kompressor [€ / Komponente / Jahr]:").pack(pady=10)
+        w_kompressor_kosten_entry = ttk.Entry(self.frame_wartungskosten, textvariable=self.w_kompressor_kosten_entry)
+        w_kompressor_kosten_entry.pack(pady=5)
 
     def hide_frames(self):
         self.frame_wirkungsgrad.pack_forget()
@@ -276,37 +273,49 @@ class FullScreenApp:
         self.standardwert_strompreis = self.strompreis_entry.get()
         self.standardwert_ueberschneidungsfaktor = self.ueberschneidungsfaktor_entry.get()
         self.standardwert_rabatt = self.rabatt_entry.get()
-        self.country_dropdown.get()
+        self.standardwert_wmotor = self.w_motor_kosten_entry.get()
+        self.standardwert_wzylinder = self.w_zylinder_kosten_entry.get()
+        self.standardwert_wkompressor = self.w_kompressor_kosten_entry.get()
+        self.standardwert_wirkungsgrad_schläuche = self.wirkungsgrad_schläuche_entry.get()
+        self.standardwert_wirkungsgrad_kompressor = self.wirkungsgrad_kompressor_entry.get()
 
         # Modify Data input
 
 
 # Einstellungsfenster erstellen
     def open_einstellungen_window(self):
-        options_window = tk.Toplevel(self.root)
-        options_window.geometry("550x660+220+170")
-        options_window.title("Options")
+        einstellungen_window = tk.Toplevel(self.root)
+        einstellungen_window.geometry("550x660+220+170")
+        einstellungen_window.title("Options")
+
+        ttk.Label(einstellungen_window, text="Werte aus Datenbank der Motoren", font=("Helvetica", 14)).grid(row=1, column=1, padx=(10, 10), pady=(30, 5))
 
 
 # Motoren Vorschau
     def motoren_window(self):
         motoren_window = tk.Toplevel(self.root)
-        motoren_window.geometry("600x660x770x170")
+        motoren_window.geometry("754x660+772+170")
         motoren_window.title("Motoren")
+
+        ttk.Label(motoren_window, text="Werte aus Datenbank der Motoren", font=("Helvetica", 14)).grid(row=1, column=1, padx=(10, 10), pady=(30, 5))
 
 
 # Zylinder Vorschau
     def zylinder_window(self):
         zylinder_window = tk.Toplevel(self.root)
-        zylinder_window.geometry("600x660x770x170")
+        zylinder_window.geometry("754x660+772+170")
         zylinder_window.title("Zylinder")
+
+        ttk.Label(zylinder_window, text="Werte aus Datenbank der Pneumatikzylinder", font=("Helvetica", 14)).grid(row=1, column=1, padx=(10, 10), pady=(30, 5))
 
 
 # Kompressor Vorschau
     def kompressor_window(self):
         kompressor_window = tk.Toplevel(self.root)
-        kompressor_window.geometry("600x660x770x170")
+        kompressor_window.geometry("754x660+772+170")
         kompressor_window.title("Kompressoren")
+
+        ttk.Label(kompressor_window, text="Wert aus Datenbank der Kompressoren", font=("Helvetica", 14)).grid(row=1, column=1, padx=(10, 10), pady=(30, 5))
 
 
 # Manuelle Dateneingabe    
@@ -316,16 +325,18 @@ class FullScreenApp:
         # Fenster erstellen
         modify_window = tk.Toplevel(self.root)
         modify_window.geometry("550x660+220+170")
-        modify_window.title("Modify Data")
+        modify_window.title("Manuelle Daten")
 
         input_frame = tk.Frame(modify_window, width=200, height=300)
         input_frame.place(x=10, y=10)
 
-        ttk.Label(modify_window, text="Manual data input:", font=("Helvetica", 22)).grid(row=2, column=0, padx=(10, 10), pady=(10, 10))
+        ttk.Label(modify_window, text="Manuelle Dateneingabe:", 
+                  font=("Helvetica", 22)).grid(row=2, column=0, padx=(10, 10), pady=(10, 10))
 
         # Felder für die Eingabe und Dropdown Menüs
         ttk.Label(input_frame, text="Schichtmodell:", font=("Helvetica", 14)).grid(row=4, column=0, padx=(10, 10), pady=(60, 5))
-        schichtmodell_dropdown = ttk.Combobox(input_frame, values=["Zweischichtbetrieb", "Dreischichtbetrieb", "Dauerbetrieb"], textvariable=self.manual_data["Schichtmodell"])
+        schichtmodell_dropdown = ttk.Combobox(input_frame, values=["Zweischichtbetrieb", "Dreischichtbetrieb", "Dauerbetrieb"], 
+                                              textvariable=self.manual_data["Schichtmodell"])
         schichtmodell_dropdown.grid(row=4, column=1, padx=(10, 10), pady=(60, 5))
 
         ttk.Label(input_frame, text="Anlagen Größe:", font=("Helvetica", 14)).grid(row=6, column=0, padx=(10, 10), pady=(10, 5))
@@ -333,7 +344,8 @@ class FullScreenApp:
         anzahl_anlage.grid(row=6, column=1, padx=(10, 10), pady=(10, 5))
 
         ttk.Label(input_frame, text="Masse in [kg]:", font=("Helvetica", 14)).grid(row=8, column=0, padx=(10, 10), pady=(10, 5))
-        masse_dropdown = ttk.Combobox(input_frame, values=["Wenig Gewicht (bis 10kg)", "Mittleres Gewicht (bis 30kg)", "Hohes Gewicht (bis 50kg)"], textvariable=self.manual_data["Masse"])
+        masse_dropdown = ttk.Combobox(input_frame, values=["Wenig Gewicht (bis 10kg)", "Mittleres Gewicht (bis 30kg)", "Hohes Gewicht (bis 50kg)"], 
+                                      textvariable=self.manual_data["Masse"])
         masse_dropdown.grid(row=8, column=1, padx=(10, 10), pady=(10, 5))
 
         ttk.Label(input_frame, text="Durchsatz pro Stunde:", font=("Helvetica", 14)).grid(row=10, column=0, padx=(10, 10), pady=(10, 5))
@@ -344,9 +356,9 @@ class FullScreenApp:
         nutzungsdauer_entry = tk.Entry(input_frame, width=23, textvariable=self.manual_data["Nutzungsdauer"])
         nutzungsdauer_entry.grid(row=12, column=1, padx=(10, 10), pady=(10, 5))
 
-        ttk.Label(input_frame, text="Druck des Kompressors in [bar]:", font=("Helvetica", 14)).grid(row=14, column=0, padx=(10, 10), pady=(10, 10))
-        druck_entry = tk.Entry(input_frame, width=23, textvariable=self.manual_data["Druck"])
-        druck_entry.grid(row=14, column=1, padx=(10, 10), pady=(10, 10))
+        ttk.Label(input_frame, text="Kompressorauswahl:", font=("Helvetica", 14)).grid(row=14, column=0, padx=(10, 10), pady=(10, 10))
+        kompressor_dropdown = ttk.Combobox(input_frame, values=self.werte_liste, textvariable=self.manual_data["Kompressoren"])
+        kompressor_dropdown.grid(row=14, column=1, padx=(10, 10), pady=(10, 10))
 
         ttk.Label(input_frame, text="Bewertungssystem:", font=("Helvetica", 18)).grid(row=16, column=0, padx=(10, 10), pady=(10, 5))
 
@@ -382,8 +394,13 @@ class FullScreenApp:
             strompreis = float(self.strompreis_entry.get())
             wirkungsgrad_elektrisch = float(self.wirkungsgrad_elektrisch_entry.get())
             wirkungsgrad_pneumatik = float(self.wirkungsgrad_pneumatisch_entry.get())
+            wirkungsgrad_schläuche = float(self.wirkungsgrad_schläuche_entry.get())
+            wirkungsgrad_kompressor = float(self.wirkungsgrad_kompressor_entry.get())
             ueberschneidungsfaktor = float(self.ueberschneidungsfaktor_entry.get())
             rabatt = float(self.rabatt_entry.get())
+            self.routine_wartung_motor_kosten = float(self.w_motor_kosten_entry.get())
+            self.routine_wartung_zylinder_kosten = float(self.w_zylinder_kosten_entry.get())
+            self.routine_wartung_kompressor_kosten = float(self.w_kompressor_kosten_entry.get())
 
 
             # Die Manuellen Daten aufrufen
@@ -392,7 +409,7 @@ class FullScreenApp:
             self.nutzungsdauer = self.manual_data["Nutzungsdauer"].get()
             self.masse = self.manual_data["Masse"].get()
             self.durchsatz = self.manual_data["Durchsatz"].get()
-            self.druck = self.manual_data["Druck"].get()
+            self.kompressor = self.manual_data["Kompressoren"].get()
             wartungskosten_value = self.manual_data["Wartungskosten"].get()
             energiekosten = self.manual_data["Energiekosten"].get()
             anschaffungskosten = self.manual_data["Anschaffungskosten"].get()
@@ -458,92 +475,225 @@ class FullScreenApp:
                 wartungsfaktor = 0.85
             elif self.schichtmodell == "Dauerbetrieb":
                 wartungsfaktor = 1
-            
+
+
+            # Auswahl Kompressor
+            if self.kompressor == "GX-2-EP":
+                Pkom = 2.2
+                Vkom = 240
+
+            elif self.kompressor == "SX-4-10bar":
+                Pkom = 3
+                Vkom = 360
+
+            elif self.kompressor == "GX-4-EP":
+                Pkom = 4
+                Vkom = 468
+
+            elif self.kompressor == "GX-7-EP":
+                Pkom = 7.5
+                Vkom = 840
+
+            elif self.kompressor == "GX-11-EL-10bar":
+                Pkom = 11
+                Vkom = 1338
+
+            elif self.kompressor == "ASD-35-10bar":
+                Pkom = 18.5
+                Vkom = 2630
+
+            elif self.kompressor == "ASD-40-10bar":
+                Pkom = 22
+                Vkom = 3130
+
+            elif self.kompressor == "ASD-50-10bar":
+                Pkom = 25
+                Vkom = 3850
+
+            elif self.kompressor == "ASD-60-10bar":
+                Pkom = 30
+                Vkom = 4490
+
+            elif self.kompressor == "GA-160-10bar":
+                Pkom = 160
+                Vkom = 26880
+
+            elif self.kompressor == "GA-200-10bar":
+                Pkom = 200
+                Vkom = 34320
 
             # Angaben Elektrik          
-            anschaffungskosten_elektrik_preis = 3000        # Euro
-            routine_wartung_motor_kosten = 250      # Euro
-            max_leistung_eletrik = 0.35     # kW
-            v_elektrisch = (hub/1000)/0.2       # m/s
+            
+            #max_leistung_eletrik = 0.35
+            #t=0.3     # sekunden
+            #v_elektrisch = (hub/1000)/t       # m/s
 
             # Berechnung Motor
-            leistung_elektrik_st = max_masse * 9.81 * v_elektrisch / 1000       # kW
-            leistung_elektrik_b = max_leistung_eletrik - leistung_elektrik_st       #kW
-            wurzel = leistung_elektrik_b * 1000 * 2 / max_masse
-            square_root = np.sqrt(wurzel)
-            zeit_b = 0.1 / square_root      # sec
+            #leistung_elektrik_st = max_masse * 9.81 * v_elektrisch / 1000       # kW
+            #leistung_elektrik_b = max_leistung_eletrik - leistung_elektrik_st       #kW
+            #wurzel = leistung_elektrik_b * 1000 * 2 / max_masse
+            #square_root = np.sqrt(wurzel)
+            #zeit_b = 0.1 / square_root      # sec
+
+            # Berechnung dynamische Leistung
+            #vbesch_verz = ((hub/1000)/4)/(t/3)
+            #vkonst = ((hub/1000)/2)/(t/3)
+
+            #abesch=vbesch_verz/(t/3)
+            #averz=vbesch_verz/(t/3)
+
+            #Fbesch=max_masse*9.81+max_masse*abesch/1000
+            #Fkonst=max_masse*9.81
+            #Fverz=max_masse*9.81+max_masse*averz/1000
+
+            #Pbesch=Fbesch*vkonst/(1000*wirkungsgrad_elektrisch)
+            #Pkonst=Fkonst*vkonst/(1000*wirkungsgrad_elektrisch)
+            #Pverz=Fverz*vkonst/(1000*wirkungsgrad_elektrisch)
 
             # Definition der Durchschnittlichen Leistung in einer Minute
-            leistung_elektrik = (0.2 * self.durchsatz/60 * leistung_elektrik_st + zeit_b * self.durchsatz/60 * leistung_elektrik_b)/60        # Watt
+            #leistung_elektrik = ((t/3) * self.durchsatz * Pbesch + t/3 * self.durchsatz * Pkonst + t/3 * self.durchsatz * Pverz)/3600        # Watt
+
+            anschaffungskosten_elektrik_preis = 3000        # Euro
+            #routine_wartung_motor_kosten = 250      # Euro
+
+            i = 66.98
+            a = 6.5
+            r = 0.0085
+            Pnenn = 40
+            nmingetriebe = 8.5
+            nmaxgetriebe = 86.7
+            Mnenngetriebe = 4.4
+            Mstartgetriebe = 24.4
+            Mbeschgetriebe = 7.33
+            Mnenn = Mnenngetriebe / i
+            Mstart = Mstartgetriebe / i
+            Mbesch = Mbeschgetriebe / i
+            nmin = nmingetriebe * i
+            Mo = 0
+            no = 7093.11
+            k = -19486.6
+            Mmax = (nmin - no) / k
+            nbesch = k * Mbesch + no
+            nnenn = nmaxgetriebe * i
+            nstart = 0
+            Pbesch = 2 * math.pi * nbesch/60 * Mbesch
+
+            Fg = max_masse * 9.81
+            Ft = a * max_masse
+            moment = Fg * r
+            mbesch = (Fg + Ft) * r
+            mmotor = moment / i
+            mbesch_motor = mbesch / i
+            Pm = mmotor * nnenn * 2 * math.pi / 60
+            Pm_besch = mbesch_motor * nbesch * 2 * math.pi / 60
+            alphabesch = a / r
+            omegamaxgetriebe = 2 * math.pi * nmaxgetriebe / 60
+            tbesch = omegamaxgetriebe / alphabesch
+            Vu = omegamaxgetriebe * r
+            tnenn = (hub / 1000) / Vu
+            Prück = 5
+            leistung_elektrik = (Pm * tnenn + Pm_besch * tbesch + Prück * tnenn) * self.durchsatz / (3600 * wirkungsgrad_elektrisch)
+
+
+
 
             # Angaben Pneumatik
-            anschaffungskosten_pneumatik_preis  = 1000      # Euro
+            anschaffungskosten_pneumatik_preis  = 2500      # Euro
             anschaffungskosten_kompressor_preis = 10000     # Euro
-            routine_wartung_kompressor_kosten = 500         # Euro
-            routine_wartung_zylinder_kosten = 250           # Euro
+            #routine_wartung_kompressor_kosten = 500         # Euro
+            #routine_wartung_zylinder_kosten = 250   
+            self.druck = 6        # Euro
             pi = math.pi
             kolbendurchmesser = 35      # mm
             zylindertyp = 2         # einfach wirkend = 1; doppelt wirkend = 2
             vstrom_zylinder = (((kolbendurchmesser/100)**2)*pi)/4 * hub/100 * self.druck * self.durchsatz/60 * zylindertyp        # l/min
             
-            ges_vstrom_zylinder =(vstrom_zylinder * self.anzahl_anlage * ueberschneidungsfaktor/wirkungsgrad_pneumatik)/60       # l/s
-          
-            leistung_pneumatik = ges_vstrom_zylinder/1000 * self.druck * 100000      # Watt
+            ges_vstrom_zylinder =(vstrom_zylinder * self.anzahl_anlage * ueberschneidungsfaktor/(wirkungsgrad_pneumatik*wirkungsgrad_schläuche))/60       # l/s
             
-            # Anschaffungskosten Berechnung
-            self.anschaffungskosten_elektrik = (anschaffungskosten_elektrik_preis + self.zoll_el + self.fracht_el + self.verpackung_el + self.montage_el) * self.anzahl_anlage * bewa * (1-rabatt/100) * (1-self.versicherung/100)
-            self.anschaffungskosten_pneumatik = ((anschaffungskosten_pneumatik_preis + self.zoll_pn + self.fracht_pn + self.verpackung_pn + self.montage_pn) * self.anzahl_anlage + anschaffungskosten_kompressor_preis) * bewa * (1-rabatt/100) * (1-self.versicherung/100)
+            #leistung_pneumatik = ges_vstrom_zylinder/1000 * self.druck * 100000      # Watt
 
-            # Energiekosten Berechnung
-            self.energiekosten_elektrik = leistung_elektrik * stunden_pro_woche * 52 * self.nutzungsdauer * self.anzahl_anlage * strompreis * bewe / wirkungsgrad_elektrisch       # Euro
-            self.energiekosten_pneumatik = leistung_pneumatik/1000 * stunden_pro_woche * 52 *  self.nutzungsdauer * strompreis * bewe         # Euro
-          
-            # Wartungskosten Elektrik:                  
-            # Definieren Sie Symbole
+            Pprom3 = (Pkom/((Vkom*60)/1000))/wirkungsgrad_kompressor
+
+
+
+
+        
+            # Ausfalls_wartung_motor
             x = sp.symbols('x')
 
             # Definieren Sie die exponentiellen Funktionen
             def exponential_function1(x):
-                return 0.02 * sp.exp(-0.55 * x) + 0.01  # Abnahme
+                return 3 * sp.exp(-0.5 * x) + 0.01  # Abnahme
+            def exponential_function2(x):
+                return 0.5 * sp.exp(0.16 * (x - 10)) # Zunahme
+            def function(x):                       
+                return 0.5                           # Konstant
+
+            # Zusammenführen der Graphen
+            def ausfalls_wartung_motor(x):
+                return exponential_function1(x) + exponential_function2(x) + function(x)
+
+            # Berechnen Sie das bestimmte Integral von 0 bis 30
+            self.integral_elektrik = sp.integrate(beww * wartungsfaktor * self.anzahl_anlage * anschaffungskosten_elektrik_preis * 
+                                                  ausfalls_wartung_motor(x)/100, (x, 0, self.nutzungsdauer)).evalf()
+            self.integral_graph_elektrik = [sp.integrate(beww * wartungsfaktor * self.anzahl_anlage * anschaffungskosten_elektrik_preis * 
+                                                         ausfalls_wartung_motor(x)/100, (x, 0, i)).evalf() for i in range(self.nutzungsdauer + 1)]
+              
+           
+    # Ausfalls_wartung_pneumatik
+            # Definieren Sie die exponentiellen Funktionen
+            def exponential_function1(x):
+                return 8 * sp.exp(-0.5 * x) + 0.01  # Abnahme
 
             def exponential_function2(x):
-                return 0.01 * sp.exp(0.2 * (x - 20)) + 0.01 # Zunahme
-
-            # Zusammenführung Graphen
-            def ausfalls_wartung_motor(x):
-                condition = sp.LessThan(x, 6.2)
-                return sp.Piecewise((exponential_function1(x), condition), (exponential_function2(x), True))
-
-            # Berechnen Sie das bestimmte Integral von 0 bis 30
-            integral_result = sp.integrate(ausfalls_wartung_motor(x), (x, 0, self.nutzungsdauer)).evalf()
-
-            # Ergebnisse
-            self.wartungskosten_elektrik = (routine_wartung_motor_kosten * self.nutzungsdauer * self.anzahl_anlage + integral_result * 2000 * self.anzahl_anlage) * beww * wartungsfaktor
-            self.routine_wartungskosten_elektrik = self.anzahl_anlage * routine_wartung_motor_kosten * self.nutzungsdauer * wartungsfaktor * beww
+                return 1 * sp.exp(0.17 * (x - 10)) # Zunahme
             
+            def function(x):
+                return 1
 
-            # Wartungskosten Pneumatik:
-            # Definieren Sie Symbole
-            x = sp.symbols('x')
+            # Zusammenführen der Graphen
+            def ausfalls_wartung_zylinder(x):
+                return exponential_function1(x) + exponential_function2(x) + function(x)
 
+            self.integral_zylinder = sp.integrate(beww * wartungsfaktor * self.anzahl_anlage * anschaffungskosten_pneumatik_preis * ausfalls_wartung_zylinder(x)/100, (x, 0, self.nutzungsdauer)).evalf()
+           
+            self.integral_graph_zylinder = [sp.integrate(beww * self.anzahl_anlage * wartungsfaktor * anschaffungskosten_pneumatik_preis * ausfalls_wartung_zylinder(x)/100, (x, 0, i)).evalf() for i in range(self.nutzungsdauer + 1)]
+
+            
             # Definieren Sie die exponentiellen Funktionen
-            def exponential_function1_p(x):
-                return 0.04 * sp.exp(-0.55 * x) + 0.03  # Abnahme
+            def exponential_function1(x):
+                return 7 * sp.exp(-0.4 * x) + 0.01  # Abnahme
 
-            def exponential_function2_p(x):
-                return 0.02 * sp.exp(0.2 * (x - 20)) + 0.03 # Zunahme
+            def exponential_function2(x):
+                return 1 * sp.exp(0.17 * (x - 10)) # Zunahme
+            
+            def function(x):
+                return 1
 
-            # Zusammenführung Graphen
-            def ausfalls_wartung_pneumatik(x):
-                condition = sp.LessThan(x, 6.2)
-                return sp.Piecewise((exponential_function1_p(x), condition), (exponential_function2_p(x), True))
+            # Zusammenführen der Graphen
+            def ausfalls_wartung_kompressor(x):
+                return exponential_function1(x) + exponential_function2(x) + function(x)
 
-            # Berechnen Sie das bestimmte Integral von 0 bis 30
-            integral_result = sp.integrate(ausfalls_wartung_pneumatik(x), (x, 0, self.nutzungsdauer)).evalf()
+            self.integral_kompressor = sp.integrate(beww * wartungsfaktor * anschaffungskosten_kompressor_preis * ausfalls_wartung_kompressor(x)/100, (x, 0, self.nutzungsdauer)).evalf()
+           
+            self.integral_graph_kompressor = [sp.integrate(beww * wartungsfaktor * anschaffungskosten_kompressor_preis/10 * ausfalls_wartung_kompressor(x)/100, (x, 0, i)).evalf() for i in range(self.nutzungsdauer + 1)]
+
+        
+            
+            # Anschaffungskosten Berechnung
+            self.anschaffungskosten_elektrik = anschaffungskosten_elektrik_preis * self.anzahl_anlage * bewa * (1-rabatt/100) 
+            self.anschaffungskosten_pneumatik = anschaffungskosten_pneumatik_preis * self.anzahl_anlage * bewa * (1-rabatt/100) 
+
+            # Energiekosten Berechnung
+            self.energiekosten_elektrik = leistung_elektrik / 1000 * stunden_pro_woche * 52 * self.nutzungsdauer * self.anzahl_anlage * strompreis * bewe      # Euro
+            self.energiekosten_pneumatik = ((ges_vstrom_zylinder * 3600) / 1000) * Pprom3 * stunden_pro_woche * 52 *  self.nutzungsdauer * strompreis * bewe         # Euro
           
             # Ergebnisse
-            self.wartungskosten_pneumatik = ((routine_wartung_kompressor_kosten  + routine_wartung_zylinder_kosten * self.anzahl_anlage) * self.nutzungsdauer + integral_result * anschaffungskosten_pneumatik_preis * self.anzahl_anlage + integral_result * anschaffungskosten_kompressor_preis) * beww * wartungsfaktor
-            self.routine_wartungskosten_pneumatik = (self.anzahl_anlage * routine_wartung_zylinder_kosten + routine_wartung_kompressor_kosten) * self.nutzungsdauer * wartungsfaktor * beww
+            self.wartungskosten_elektrik = ((self.routine_wartung_motor_kosten * self.nutzungsdauer * self.anzahl_anlage) * beww * wartungsfaktor) + self.integral_elektrik      
+
+            # Ergebnisse
+            self.wartungskosten_pneumatik = ((self.routine_wartung_kompressor_kosten  + self.routine_wartung_zylinder_kosten * self.anzahl_anlage) * self.nutzungsdauer * beww * wartungsfaktor) + self.integral_zylinder +  self.integral_kompressor
+           
 
             # Berechnung Anschaffungskosten
             self.gesamtkosten_elektrik = self.anschaffungskosten_elektrik + self.wartungskosten_elektrik + self.energiekosten_elektrik
@@ -572,13 +722,10 @@ class FullScreenApp:
                 def formatiere_zahl(zahl):
                     return '{:,.0f}'.format(zahl).replace(',', ' ')
 
-
-
                 # Elektrik Ausgabe
                 ttk.Label(frame_elektrik, text="Elektrisch:", font=("Helvetica", 20, "bold")).pack(pady=10)
 
                 ttk.Label(frame_elektrik, text=f"Wartungskosten: {formatiere_zahl(self.wartungskosten_elektrik)} €", font=("Helvetica", 14)).pack(pady=4)
-                ttk.Label(frame_elektrik, text=f"Routinewartungskosten: {formatiere_zahl(self.routine_wartungskosten_elektrik)} €", font=("Helvetica", 14)).pack(pady=4)
                 ttk.Label(frame_elektrik, text=f"Energiekosten: {formatiere_zahl(self.energiekosten_elektrik)} €", font=("Helvetica", 14)).pack(pady=4)
                 ttk.Label(frame_elektrik, text=f"Anschaffungskosten: {formatiere_zahl(self.anschaffungskosten_elektrik)} €", font=("Helvetica", 14)).pack(pady=4)
                 ttk.Label(frame_elektrik, text=f"Gesamtkosten: {formatiere_zahl(self.gesamtkosten_elektrik)} €", font=("Helvetica", 14)).pack(pady=4)
@@ -589,32 +736,15 @@ class FullScreenApp:
              
                 # Parameter für Berechnungen
                 x = sp.symbols('x')
-                nutzungsdauer = int(self.manual_data["Nutzungsdauer"].get())
+                self.nutzungsdauer = int(self.manual_data["Nutzungsdauer"].get())
 
-                # 1. routine_wartungskosten_elektrik
-                routine_wartungskosten_elektrik = routine_wartung_motor_kosten * self.anzahl_anlage * x * beww * wartungsfaktor
+                # 1. wartungskosten-elektrik
+                routine_wartungskosten_elektrik = self.routine_wartung_motor_kosten * self.anzahl_anlage * x * wartungsfaktor * beww
 
                 # 2. energiekosten_elektrik
-                energiekosten_elektrik = leistung_elektrik * stunden_pro_woche * 52 * x * self.anzahl_anlage * strompreis * bewe / wirkungsgrad_elektrisch 
+                energiekosten_elektrik = leistung_elektrik/1000 * stunden_pro_woche * 52 * x * self.anzahl_anlage * strompreis * bewe / wirkungsgrad_elektrisch 
 
-                # 3. ausfalls_wartung_motor
-                x = sp.symbols('x')
-
-                # Definieren Sie die exponentiellen Funktionen
-                def exponential_function1(x):
-                    return 0.02 * sp.exp(-0.55 * x) + 0.01  # Abnahme
-
-                def exponential_function2(x):
-                    return 0.01 * sp.exp(0.2 * (x - 20)) + 0.01 # Zunahme
-
-                # Zusammenführung Graphen
-                def ausfalls_wartung_motor(x):
-                    condition = sp.LessThan(x, 6.2)
-                    return sp.Piecewise((exponential_function1(x), condition), (exponential_function2(x), True))
-
-                # Berechnen Sie das bestimmte Integral von 0 bis 30
-                integral_values = [sp.integrate(beww * wartungsfaktor * self.anzahl_anlage * anschaffungskosten_elektrik_preis * ausfalls_wartung_motor(x), (x, 0, i)).evalf() for i in range(self.nutzungsdauer + 1)]
-               
+                
 
                 # 4. gesamtkosten_elektrik
                 # Berechnung der Werte
@@ -623,7 +753,7 @@ class FullScreenApp:
                 self.elektrik_energiekosten_values = [energiekosten_elektrik.subs(x, i).evalf() for i in x_values]
                 
                 # Erstellen des Gesamtgraphen
-                self.gesamt_graph_elektrik = [self.anschaffungskosten_elektrik + routine + energie + ausfall for routine, energie, ausfall in zip(self.elektrik_routine_wartungskosten_values, self.elektrik_energiekosten_values, integral_values)]
+                self.gesamt_graph_elektrik = [self.anschaffungskosten_elektrik + routine + energie + ausfall for routine, energie, ausfall in zip(self.elektrik_routine_wartungskosten_values, self.elektrik_energiekosten_values, self.integral_graph_elektrik)]
                 
 
 
@@ -631,7 +761,6 @@ class FullScreenApp:
                 ttk.Label(frame_pneumatik, text="Pneumatisch:", font=("Helvetica", 20, "bold")).pack(pady=10)
 
                 ttk.Label(frame_pneumatik, text=f"Wartungskosten: {formatiere_zahl(self.wartungskosten_pneumatik)} €", font=("Helvetica", 14)).pack(pady=4)
-                ttk.Label(frame_pneumatik, text=f"Routinewartungskosten: {formatiere_zahl(self.routine_wartungskosten_pneumatik)} €", font=("Helvetica", 14)).pack(pady=4)
                 ttk.Label(frame_pneumatik, text=f"Energiekosten: {formatiere_zahl(self.energiekosten_pneumatik)} €", font=("Helvetica", 14)).pack(pady=4)
                 ttk.Label(frame_pneumatik, text=f"Anschaffungskosten: {formatiere_zahl(self.anschaffungskosten_pneumatik)} €", font=("Helvetica", 14)).pack(pady=4)
                 ttk.Label(frame_pneumatik, text=f"Gesamtkosten: {formatiere_zahl(self.gesamtkosten_pneumatik)} €", font=("Helvetica", 14)).pack(pady=4)
@@ -644,39 +773,12 @@ class FullScreenApp:
                 x = sp.symbols('x')
                 self.nutzungsdauer = int(self.manual_data["Nutzungsdauer"].get())
 
-                # 1. routine_wartungskosten_pneumatik
-                routine_wartungskosten_pneumatik = (routine_wartung_zylinder_kosten * self.anzahl_anlage + routine_wartung_kompressor_kosten) * x * wartungsfaktor * beww
+                routine_wartungskosten_pneumatik=(self.routine_wartung_zylinder_kosten * self.anzahl_anlage + self.routine_wartung_kompressor_kosten) * x * wartungsfaktor * beww
 
                 # 2. energiekosten_pneumatik
-                energiekosten_pneumatik = leistung_pneumatik/1000 * stunden_pro_woche * 52 *  x * strompreis * bewe
+                energiekosten_pneumatik = ((ges_vstrom_zylinder * 3600) / 1000) * Pprom3 * stunden_pro_woche * 52 * x * strompreis * bewe
 
-                # 3. ausfalls_wartung_pneumatik
-                def exponential_function1(x):
-                    return 0.04 * sp.exp(-0.55 * x) + 0.03
-
-                def exponential_function2(x):
-                    return 0.02 * sp.exp(0.2 * (x - 20)) + 0.03
-
-                def ausfalls_wartung_pneumatik(x):
-                    condition = sp.LessThan(x, 6.2)
-                    return sp.Piecewise((exponential_function1(x), condition), (exponential_function2(x), True))
-
-                self.integral_values_zylinder = [sp.integrate(beww * self.anzahl_anlage * wartungsfaktor * anschaffungskosten_pneumatik_preis * ausfalls_wartung_pneumatik(x), (x, 0, i)).evalf() for i in range(self.nutzungsdauer + 1)]
-
-
-                def exponential_function1(x):
-                    return 0.04 * sp.exp(-0.55 * x) + 0.03
-
-                def exponential_function2(x):
-                    return 0.02 * sp.exp(0.2 * (x - 20)) + 0.03
-
-                def ausfalls_wartung_pneumatik(x):
-                    condition = sp.LessThan(x, 6.2)
-                    return sp.Piecewise((exponential_function1(x), condition), (exponential_function2(x), True))
-
-                self.integral_values_kompressor = [sp.integrate(beww * wartungsfaktor * anschaffungskosten_kompressor_preis * ausfalls_wartung_pneumatik(x), (x, 0, i)).evalf() for i in range(self.nutzungsdauer + 1)]
-
-
+               
                 # 4. gesamtkosten pneumatik
                 # Berechnung der Werte
                 x_values = range(self.nutzungsdauer + 1)
@@ -684,7 +786,7 @@ class FullScreenApp:
                 self.pneumatik_energiekosten_values = [energiekosten_pneumatik.subs(x, i).evalf() for i in x_values]
                 
                 # Erstellen des Gesamtgraphen
-                gesamt_graph_pneumatik = [self.anschaffungskosten_pneumatik + routine + energie + ausfallzylinder + ausfallkompressor for routine, energie, ausfallzylinder, ausfallkompressor in zip(self.pneumatik_routine_wartungskosten_values, self.pneumatik_energiekosten_values, self.integral_values_zylinder, self.integral_values_kompressor)]
+                gesamt_graph_pneumatik = [self.anschaffungskosten_pneumatik + routine + energie + ausfallzylinder + ausfallkompressor for routine, energie, ausfallzylinder, ausfallkompressor in zip(self.pneumatik_routine_wartungskosten_values, self.pneumatik_energiekosten_values, self.integral_graph_zylinder, self.integral_graph_kompressor)]
                 
 
 
@@ -693,7 +795,7 @@ class FullScreenApp:
                 frame_graph_combined = ttk.Frame(self.results_window)
                 frame_graph_combined.pack(side=tk.BOTTOM, anchor=tk.CENTER, pady=10)
                 
-                # Graphen für Pneumatik
+                # Graphen
                 figure_combined = Figure(figsize=(7.2, 4.5), tight_layout=True)
 
                 # Parameter für Berechnungen
@@ -702,10 +804,13 @@ class FullScreenApp:
 
                # Plot Elektrik
                 subplot_combined = figure_combined.add_subplot(1, 1, 1)
-                subplot_combined.plot([i for i in range(self.nutzungsdauer + 1)], self.gesamt_graph_elektrik, linestyle='-', color='orange', label='Elektrik')
+                subplot_combined.plot([i for i in range(self.nutzungsdauer + 1)], 
+                                      self.gesamt_graph_elektrik, linestyle='-', color='orange', label='Elektrik')
 
                 # Plot Pneumatik
-                gesamt_graph_pneumatik = [self.anschaffungskosten_pneumatik + routine + energie + ausfallzylinder + ausfallkompressor for routine, energie, ausfallzylinder, ausfallkompressor in zip(self.pneumatik_routine_wartungskosten_values, self.pneumatik_energiekosten_values, self.integral_values_zylinder, self.integral_values_kompressor)]
+                gesamt_graph_pneumatik = [self.anschaffungskosten_pneumatik + routine + energie + ausfallzylinder + ausfallkompressor 
+                                          for routine, energie, ausfallzylinder, ausfallkompressor 
+                                          in zip(self.pneumatik_routine_wartungskosten_values, self.pneumatik_energiekosten_values, self.integral_graph_zylinder, self.integral_graph_kompressor)]
                 subplot_combined.plot([i for i in range(self.nutzungsdauer + 1)], gesamt_graph_pneumatik, linestyle='-', color='blue', label='Pneumatik')
 
                 subplot_combined.set_title("Gesamtkosten Elektrik und Pneumatik")
@@ -729,10 +834,10 @@ class FullScreenApp:
                 ttk.Label(frame_datenausgabe, text=f"Bauteil: {self.selected_component}", font=("Helvetica", 12)).pack(pady=4)
                 ttk.Label(frame_datenausgabe, text=f"Schichtmodell: {self.schichtmodell}", font=("Helvetica", 12)).pack(pady=4)
                 ttk.Label(frame_datenausgabe, text=f"Nutzungsdauer: {self.nutzungsdauer} Jahre", font=("Helvetica", 12)).pack(pady=4)
-                ttk.Label(frame_datenausgabe, text=f"Größe der Anlage: {self.anzahl_anlage} Stück", font=("Helvetica", 12)).pack(pady=4)
+                ttk.Label(frame_datenausgabe, text=f"Stückzahl der Anlage: {self.anzahl_anlage} Stück", font=("Helvetica", 12)).pack(pady=4)
                 ttk.Label(frame_datenausgabe, text=f"Masse: {self.masse}", font=("Helvetica", 12)).pack(pady=4)
                 ttk.Label(frame_datenausgabe, text=f"Durchsatz: {self.durchsatz} pro Stunde", font=("Helvetica", 12)).pack(pady=4)
-                ttk.Label(frame_datenausgabe, text=f"Druck: {self.druck} bar", font=("Helvetica", 12)).pack(pady=4)
+                ttk.Label(frame_datenausgabe, text=f"Druck: {self.kompressor}", font=("Helvetica", 12)).pack(pady=4)
 
                 # Frame für Buttons und Einstellungen im Results Window
                 frame_buttons = tk.Frame(self.results_window, width=300, height=200)
@@ -756,7 +861,7 @@ class FullScreenApp:
             root.mainloop()
 
 
-# Ergebnisse als PDF speichern 
+    # Ergebnisse als PDF speichern 
     def create_pdf(self):
         file_path = filedialog.asksaveasfilename(defaultextension=".pdf", filetypes=[("PDF files", "*.pdf")])
         
@@ -808,7 +913,7 @@ class FullScreenApp:
             c.drawString(30, 610, f"Schichtmodell: {self.schichtmodell}")
             c.drawString(30, 585, f"Nutzungsdauer: {formatiere_zahl(self.nutzungsdauer)} Jahre")
             c.drawString(30, 560, f"Stückzahl der Anlage: {formatiere_zahl(self.anzahl_anlage)} Stück")
-            c.drawString(30, 535, f"Druck Kompressor: {formatiere_zahl(self.druck)} bar")
+            c.drawString(30, 535, f"Kompressor: {self.kompressor}")
 
             # Elektrik Ausgabe
             c.setFont("Helvetica", 20)
@@ -816,10 +921,9 @@ class FullScreenApp:
 
             c.setFont("Helvetica", 14)
             c.drawString(30, 410, f"Wartungskosten: {formatiere_zahl(self.wartungskosten_elektrik)} €")
-            c.drawString(30, 385, f"Routinewartungskosten: {formatiere_zahl(self.routine_wartungskosten_elektrik)} €")
-            c.drawString(30, 360, f"Energiekosten: {formatiere_zahl(self.energiekosten_elektrik)} €")
-            c.drawString(30, 335, f"Anschaffungskosten: {formatiere_zahl(self.anschaffungskosten_elektrik)} €")
-            c.drawString(30, 310, f"Gesamtkosten: {formatiere_zahl(self.gesamtkosten_elektrik)} €")
+            c.drawString(30, 380, f"Energiekosten: {formatiere_zahl(self.energiekosten_elektrik)} €")
+            c.drawString(30, 350, f"Anschaffungskosten: {formatiere_zahl(self.anschaffungskosten_elektrik)} €")
+            c.drawString(30, 320, f"Gesamtkosten: {formatiere_zahl(self.gesamtkosten_elektrik)} €")
 
             # Pneumatik Ausgabe
             c.setFont("Helvetica", 20)
@@ -827,10 +931,9 @@ class FullScreenApp:
 
             c.setFont("Helvetica", 14)
             c.drawString(307, 410, f"Wartungskosten: {formatiere_zahl(self.wartungskosten_pneumatik)} €")
-            c.drawString(307, 385, f"Routinewartungskosten: {formatiere_zahl(self.routine_wartungskosten_pneumatik)} €")
-            c.drawString(307, 360, f"Energiekosten: {formatiere_zahl(self.energiekosten_pneumatik)} €")
-            c.drawString(307, 335, f"Anschaffungskosten: {formatiere_zahl(self.anschaffungskosten_pneumatik)} €")
-            c.drawString(307, 310, f"Gesamtkosten: {formatiere_zahl(self.gesamtkosten_pneumatik)} €")
+            c.drawString(307, 380, f"Energiekosten: {formatiere_zahl(self.energiekosten_pneumatik)} €")
+            c.drawString(307, 350, f"Anschaffungskosten: {formatiere_zahl(self.anschaffungskosten_pneumatik)} €")
+            c.drawString(307, 320, f"Gesamtkosten: {formatiere_zahl(self.gesamtkosten_pneumatik)} €")
 
         # Graph für Elektrik und Pneumatik Gesamtkosten vereint
             # Frame für kombinierten Graphen
@@ -849,7 +952,7 @@ class FullScreenApp:
             subplot_combined.plot([i for i in range(nutzungsdauer + 1)], self.gesamt_graph_elektrik, linestyle='-', color='orange', label='Elektrik')
 
             # Plot Pneumatik
-            gesamt_graph_pneumatik = [self.anschaffungskosten_pneumatik + routine + energie + ausfallzylinder + ausfallkompressor for routine, energie, ausfallzylinder, ausfallkompressor in zip(self.pneumatik_routine_wartungskosten_values, self.pneumatik_energiekosten_values, self.integral_values_zylinder, self.integral_values_kompressor)]
+            gesamt_graph_pneumatik = [self.anschaffungskosten_pneumatik + routine + energie + ausfallzylinder + ausfallkompressor for routine, energie, ausfallzylinder, ausfallkompressor in zip(self.pneumatik_routine_wartungskosten_values, self.pneumatik_energiekosten_values, self.integral_graph_zylinder, self.integral_graph_kompressor)]
             subplot_combined.plot([i for i in range(nutzungsdauer + 1)], gesamt_graph_pneumatik, linestyle='-', color='blue', label='Pneumatik')
 
             subplot_combined.set_title("Gesamtkosten Elektrik und Pneumatik")
